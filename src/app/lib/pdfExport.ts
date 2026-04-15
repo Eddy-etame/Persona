@@ -55,9 +55,11 @@ export async function exportElementToPdf({
     useCORS: true,
     backgroundColor,
     allowTaint: false,
+    logging: true, // Aide à diagnostiquer les erreurs CORS
   });
-  if (!canvas.width || !canvas.height) {
-    throw new Error("Capture du contenu PDF invalide (canvas vide).");
+  
+  if (!canvas || canvas.width === 0 || canvas.height === 0) {
+    throw new Error("La capture du contenu a échoué (canvas vide). Vérifiez que l'élément est bien visible.");
   }
 
   const pdf = new JsPdf({

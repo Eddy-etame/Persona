@@ -47,6 +47,10 @@ export function PosterView() {
     setExporting(true);
     try {
       const fileName = `Poster_${persona?.name || "Persona"}_${school.shortName || school.name}.pdf`;
+      
+      // Petit délai pour laisser Recharts désactiver les animations
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       await exportElementToPdf({
         element: posterRef.current,
         fileName,
@@ -383,6 +387,7 @@ export function PosterView() {
                         return null;
                       }} />
                       <Line type="monotone" dataKey="emotion" stroke="#3b82f6" strokeWidth={3}
+                        isAnimationActive={!exporting}
                         dot={{ fill: "#3b82f6", r: 5 }} activeDot={{ r: 7 }} />
                     </LineChart>
                   </ResponsiveContainer>
