@@ -215,6 +215,16 @@ export function journeyKey(schoolId: string): string {
   return `${schoolId}-journey`;
 }
 
+export function journeyKeyByRole(schoolId: string, role: string): string {
+  const roleSlug = role
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return `${schoolId}-journey-${roleSlug}`;
+}
+
 export function savedPersonasKey(schoolId: string): string {
   return `${schoolId}-saved-personas`;
 }
@@ -239,6 +249,84 @@ export const SCHOOL_TYPES = [
   "Conservatoire",
   "Autre établissement d'enseignement supérieur"
 ];
+
+// ─── Export / Import ──────────────────────────────────────────────────────────
+
+export interface SchoolExportData {
+  version: 1;
+  exportedAt: string;
+  school: School;
+  persona: unknown | null;
+  savedPersonas: Record<string, unknown> | null;
+  journeySteps: unknown[] | null;
+  journeysByRole?: Record<string, unknown[]>;
+}
+
+export function exportSchoolData(schoolId: string): SchoolExportData | null {
+  const school = getSchoolById(schoolId);
+  if (!school) return null;
+
+  let persona = null;
+  try { const raw = localStorage.getItem(personaKey(schoolId)); if (raw) persona = JSON.parse(raw); } catch {}
+
+  let savedPersonas = null;
+  try { const raw = localStorage.getItem(savedPersonasKey(schoolId)); if (raw) savedPersonas = JSON.parse(raw); } catch {}
+
+  let journeySteps = null;
+  try { const raw = localStorage.getItem(journeyKey(schoolId)); if (raw) journeySteps = JSON.parse(raw); } catch {}
+
+  let journeysByRole: Record<string, unknown[]> = {};
+  try {
+    const savedPersonasRaw = localStorage.getItem(savedPersonasKey(schoolId));
+    const saved = savedPersonasRaw ? (JSON.parse(savedPersonasRaw) as Record<string, unknown>) : {};
+    Object.keys(saved).forEach((role) => {
+      const raw = localStorage.getItem(journeyKeyByRole(schoolId, role));
+      if (raw) journeysByRole[role] = JSON.parse(raw);
+    });
+  } catch {}
+
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    school,
+    persona,
+    savedPersonas,
+    journeySteps,
+    journeysByRole: Object.keys(journeysByRole).length > 0 ? journeysByRole : undefined,
+  };
+}
+
+export function importSchoolData(data: SchoolExportData): { success: boolean; schoolName: string; error?: string } {
+  try {
+    if (!data.version || !data.school || !data.school.name) {
+      return { success: false, schoolName: "", error: "Format de fichier invalide" };
+    }
+
+    const newId = generateSchoolId();
+    const school: School = { ...data.school, id: newId, isDemo: false };
+
+    saveSchool(school);
+
+    if (data.persona) {
+      localStorage.setItem(personaKey(newId), JSON.stringify(data.persona));
+    }
+    if (data.savedPersonas) {
+      localStorage.setItem(savedPersonasKey(newId), JSON.stringify(data.savedPersonas));
+    }
+    if (data.journeySteps) {
+      localStorage.setItem(journeyKey(newId), JSON.stringify(data.journeySteps));
+    }
+    if (data.journeysByRole) {
+      Object.entries(data.journeysByRole).forEach(([role, steps]) => {
+        localStorage.setItem(journeyKeyByRole(newId, role), JSON.stringify(steps));
+      });
+    }
+
+    return { success: true, schoolName: school.name };
+  } catch {
+    return { success: false, schoolName: "", error: "Erreur lors de l'import" };
+  }
+}
 
 export const COUNTRIES = [
   "France", "Belgique", "Suisse", "Luxembourg", "Canada (Québec)",

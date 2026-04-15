@@ -1,61 +1,89 @@
-**Add your own guidelines here**
-<!--
+# EduSystemDesign — Project Guidelines
 
-System Guidelines
+## Language
 
-Use this file to provide the AI with rules and guidelines you want it to follow.
-This template outlines a few examples of things you can add. You can add your own sections and format it to suit your needs
+All user-facing text must be in **French**. Code (variables, functions, comments) should be in **English**.
 
-TIP: More context isn't always better. It can confuse the LLM. Try and add the most important rules you need
+## Tech Stack
 
-# General guidelines
+| Layer         | Technology                                  |
+|---------------|---------------------------------------------|
+| Framework     | React 18 + TypeScript (TSX)                 |
+| Bundler       | Vite 6                                      |
+| Routing       | React Router 7 (`createBrowserRouter`)      |
+| Styling       | Tailwind CSS 4 + CSS variables (`theme.css`)|
+| UI Components | shadcn/ui (Radix primitives + CVA)          |
+| Icons         | lucide-react                                |
+| Toasts        | sonner                                      |
+| Charts        | recharts                                    |
+| PDF Export    | html2canvas + jspdf (dynamic imports)       |
+| Persistence   | Browser localStorage                        |
+| Package Mgr   | pnpm                                        |
 
-Any general rules you want the AI to follow.
-For example:
+## Project Structure
 
-* Only use absolute positioning when necessary. Opt for responsive and well structured layouts that use flexbox and grid by default
-* Refactor code as you go to keep code clean
-* Keep file sizes small and put helper functions and components in their own files.
+```
+src/
+  app/
+    pages/              # Route-level page components
+    components/
+      ui/               # shadcn/ui primitives (button, card, etc.)
+      persona/          # PersonaEditor sub-components
+      ThemeToggle.tsx    # Dark mode toggle
+      SaveStatus.tsx     # Autosave status indicator
+    lib/
+      schoolStore.ts    # localStorage CRUD, School interface, export/import
+      types.ts          # Shared interfaces (Persona, JourneyStep)
+      useAutosave.ts    # Autosave hook
+      ThemeProvider.tsx  # Dark mode context provider
+    routes.ts           # React Router configuration
+    App.tsx             # Root component (ThemeProvider + Router + Toaster)
+  styles/
+    index.css           # Entry CSS (imports fonts, tailwind, theme)
+    fonts.css           # Font imports
+    tailwind.css        # Tailwind directives
+    theme.css           # CSS custom properties + dark mode tokens
+```
 
---------------
+## Coding Conventions
 
-# Design system guidelines
-Rules for how the AI should make generations look like your company's design system
+### Components
+- One component per file. File name matches the default export.
+- Page components go in `pages/`. Reusable components go in `components/`.
+- Keep page components under 300 lines. Extract sub-components when a file grows beyond that.
+- Props interfaces are defined in the same file as the component, unless shared.
 
-Additionally, if you select a design system to use in the prompt box, you can reference
-your design system's components, tokens, variables and components.
-For example:
+### Tailwind
+- **Never use dynamic class interpolation** (e.g. `` bg-${color}-500 ``). Tailwind purges classes at build time and cannot detect these. Use a static map instead.
+- Keep utility classes in JSX. Extract to `@apply` only for truly repeated patterns.
+- Use CSS variables from `theme.css` for theming (colors, border-radius, etc.).
 
-* Use a base font-size of 14px
-* Date formats should always be in the format “Jun 10”
-* The bottom toolbar should only ever have a maximum of 4 items
-* Never use the floating action button with the bottom toolbar
-* Chips should always come in sets of 3 or more
-* Don't use a dropdown if there are 2 or fewer options
+### State Management
+- Use React `useState` + `useCallback` for local state.
+- Use `localStorage` via helpers in `schoolStore.ts` for persistence.
+- Use the `useAutosave` hook for any editor page with user input.
+- No global state library is needed at current scale.
 
-You can also create sub sections and add more specific details
-For example:
+### Types
+- Shared interfaces (`Persona`, `JourneyStep`, `School`) live in `lib/types.ts` or `lib/schoolStore.ts`.
+- Always use `import type { ... }` for type-only imports.
+- Do not define interfaces inside page components if they are used elsewhere.
 
+### Imports
+- Remove unused imports before committing.
+- Group imports: React → third-party → local components → local lib → types.
+- Use the `@/` path alias (maps to `src/`).
 
-## Button
-The Button component is a fundamental interactive element in our design system, designed to trigger actions or navigate
-users through the application. It provides visual feedback and clear affordances to enhance user experience.
+### Toasts
+- Always use `toast` from `sonner`. Never create custom DOM-based toast elements.
+- Use `toast.success()`, `toast.error()`, `toast.info()` for semantic feedback.
 
-### Usage
-Buttons should be used for important actions that users need to take, such as form submissions, confirming choices,
-or initiating processes. They communicate interactivity and should have clear, action-oriented labels.
+### French Content
+- All labels, placeholders, button text, and error messages must be in French.
+- Variable names and function names remain in English.
+- Template data (persona examples) is in French.
 
-### Variants
-* Primary Button
-  * Purpose : Used for the main action in a section or page
-  * Visual Style : Bold, filled with the primary brand color
-  * Usage : One primary button per section to guide users toward the most important action
-* Secondary Button
-  * Purpose : Used for alternative or supporting actions
-  * Visual Style : Outlined with the primary color, transparent background
-  * Usage : Can appear alongside a primary button for less important actions
-* Tertiary Button
-  * Purpose : Used for the least important actions
-  * Visual Style : Text-only with no border, using primary color
-  * Usage : For actions that should be available but not emphasized
--->
+## Git & Workflow
+- Commit messages in English, imperative mood: "Add dark mode toggle", "Fix dynamic Tailwind classes".
+- One logical change per commit.
+- Test the dev server (`pnpm dev`) before committing to verify no build errors.

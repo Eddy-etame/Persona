@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { ArrowLeft, ArrowRight, Save, Building2, Users, BookOpen, Monitor, Settings, Heart, Target, Layers, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { School, saveSchool, setActiveSchoolId, generateSchoolId, SCHOOL_TYPES, COUNTRIES } from "../lib/schoolStore";
+import { School, saveSchool, setActiveSchoolId, generateSchoolId, getSchoolById, SCHOOL_TYPES, COUNTRIES } from "../lib/schoolStore";
+import { SCHOOL_TEMPLATES } from "../lib/schoolTemplates";
 
 // ─── Field helpers (defined outside to avoid focus loss) ─────────────────────
 
@@ -84,13 +85,47 @@ const EMPTY: School = {
   specificRequirements: "", competitorSystems: ""
 };
 
+const DRAFT_KEY = "onboarding-draft";
+
 export function SchoolOnboarding() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [school, setSchool] = useState<School>({ ...EMPTY, id: generateSchoolId() });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editId = searchParams.get("edit");
+  const initialStep = parseInt(searchParams.get("step") ?? "0", 10);
+
+  const [step, setStepRaw] = useState(Math.min(Math.max(initialStep, 0), STEPS.length - 1));
+
+  const setStep = (s: number) => {
+    setStepRaw(s);
+    const params = new URLSearchParams(searchParams);
+    params.set("step", String(s));
+    setSearchParams(params, { replace: true });
+  };
+
+  const [school, setSchool] = useState<School>(() => {
+    // 1. Try loading existing school if editing
+    if (editId) {
+      const existing = getSchoolById(editId);
+      if (existing) return existing;
+    }
+    // 2. Try restoring draft from sessionStorage
+    try {
+      const draft = sessionStorage.getItem(DRAFT_KEY);
+      if (draft) return JSON.parse(draft);
+    } catch {}
+    // 3. Start fresh
+    return { ...EMPTY, id: generateSchoolId() };
+  });
+
+  // Persist draft to sessionStorage on every change
+  useEffect(() => {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(school));
+  }, [school]);
 
   const u = (field: keyof School, value: string) =>
     setSchool(prev => ({ ...prev, [field]: value }));
+
+  const isEditing = !!editId;
 
   const handleSave = () => {
     if (!school.name.trim()) {
@@ -104,7 +139,8 @@ export function SchoolOnboarding() {
     };
     saveSchool(finalSchool);
     setActiveSchoolId(finalSchool.id);
-    toast.success(`${finalSchool.name} configuré avec succès !`);
+    sessionStorage.removeItem(DRAFT_KEY);
+    toast.success(`${finalSchool.name} ${isEditing ? "mis à jour" : "configuré"} avec succès !`);
     navigate("/home");
   };
 
@@ -182,6 +218,42 @@ export function SchoolOnboarding() {
         {/* ── STEP 0 : IDENTITÉ ── */}
         {step === 0 && (
           <div className="space-y-4">
+            {/* Template Picker */}
+            {!isEditing && !school.name.trim() && (
+              <Card className="border-blue-200 bg-blue-50/50">
+                <CardHeader>
+                  <CardTitle className="text-blue-800 flex items-center gap-2">
+                    <Layers className="w-5 h-5" />
+                    Démarrage rapide — Choisir un modèle
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 mb-4">Sélectionnez un type d'établissement pour pré-remplir les champs, ou commencez de zéro.</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {SCHOOL_TEMPLATES.map(tpl => (
+                      <button
+                        key={tpl.id}
+                        onClick={() => setSchool(prev => ({ ...prev, ...tpl.data }))}
+                        className="text-left border rounded-lg p-3 hover:border-blue-400 hover:bg-blue-50 transition-all group"
+                      >
+                        <div className="text-2xl mb-1">{tpl.emoji}</div>
+                        <div className="font-medium text-sm text-gray-900 group-hover:text-blue-700">{tpl.label}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{tpl.description}</div>
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => {}}
+                      className="text-left border border-dashed rounded-lg p-3 hover:border-gray-400 transition-all"
+                    >
+                      <div className="text-2xl mb-1">📝</div>
+                      <div className="font-medium text-sm text-gray-600">Commencer de zéro</div>
+                      <div className="text-xs text-gray-400 mt-0.5">Remplissez chaque champ manuellement</div>
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                 <Building2 className="w-7 h-7 text-blue-600" />

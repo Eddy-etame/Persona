@@ -1,20 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { getAllSchools, getActiveSchoolId, setActiveSchoolId, School } from "../lib/schoolStore";
-import { GraduationCap, Plus, CheckCircle2, Building2, Globe, Users, BookOpen, ArrowRight, Star } from "lucide-react";
+import { getAllSchools, getActiveSchoolId, setActiveSchoolId, importSchoolData, School, SchoolExportData } from "../lib/schoolStore";
+import { toast } from "sonner";
+import { GraduationCap, Plus, CheckCircle2, Building2, Globe, Users, BookOpen, ArrowRight, Star, Upload, Download as DownloadIcon } from "lucide-react";
+import { ThemeToggle } from "../components/ThemeToggle";
+import { useDocumentMeta } from "../lib/useDocumentMeta";
 
 export function SchoolSelection() {
   const navigate = useNavigate();
   const [schools, setSchools] = useState<School[]>([]);
   const [activeId, setActiveId] = useState<string>("");
+  const deferredPromptRef = useRef<Event | null>(null);
+  const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
     setSchools(getAllSchools());
     setActiveId(getActiveSchoolId());
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      deferredPromptRef.current = e;
+      setCanInstall(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+
+  useDocumentMeta({
+    title: "EduSystemDesign",
+    description: "Plateforme UX/UI de conception de systemes de gestion pour l'enseignement superieur",
+    robots: "index,follow",
+  });
 
   const handleSelect = (schoolId: string) => {
     setActiveSchoolId(schoolId);
@@ -78,13 +97,48 @@ export function SchoolSelection() {
               <h2 className="text-2xl font-bold text-white">Choisissez votre établissement</h2>
               <p className="text-blue-300/70 text-sm mt-1">Sélectionnez une école existante ou ajoutez-en une nouvelle</p>
             </div>
-            <Button
-              onClick={() => navigate("/school-setup")}
-              className="bg-blue-500 hover:bg-blue-400 text-white gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter un établissement
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10 gap-2"
+                onClick={() => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.accept = ".json";
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      try {
+                        const data = JSON.parse(ev.target?.result as string) as SchoolExportData;
+                        const result = importSchoolData(data);
+                        if (result.success) {
+                          toast.success(`"${result.schoolName}" importé avec succès !`);
+                          setSchools(getAllSchools());
+                        } else {
+                          toast.error(result.error || "Erreur d'import");
+                        }
+                      } catch {
+                        toast.error("Fichier JSON invalide");
+                      }
+                    };
+                    reader.readAsText(file);
+                  };
+                  input.click();
+                }}
+              >
+                <Upload className="w-4 h-4" />
+                Importer
+              </Button>
+              <Button
+                onClick={() => navigate("/school-setup")}
+                className="bg-blue-500 hover:bg-blue-400 text-white gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Ajouter un établissement
+              </Button>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -171,8 +225,30 @@ export function SchoolSelection() {
       </div>
 
       {/* Footer */}
-      <div className="text-center py-4 text-blue-300/40 text-xs">
-        EduSystemDesign — Plateforme UX/UI Enseignement Supérieur
+      <div className="flex items-center justify-center gap-4 py-4">
+        <span className="text-blue-300/40 text-xs">EduSystemDesign — Plateforme UX/UI Enseignement Supérieur</span>
+        {canInstall && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-white/20 text-white hover:bg-white/10 gap-2 text-xs"
+            onClick={async () => {
+              const prompt = deferredPromptRef.current as any;
+              if (prompt?.prompt) {
+                prompt.prompt();
+                const result = await prompt.userChoice;
+                if (result.outcome === "accepted") {
+                  setCanInstall(false);
+                  toast.success("Application installée !");
+                }
+              }
+            }}
+          >
+            <DownloadIcon className="w-3 h-3" />
+            Installer l'app
+          </Button>
+        )}
+        <ThemeToggle />
       </div>
     </div>
   );

@@ -7,16 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Slider } from "../components/ui/slider";
 import { ArrowLeft, Save, Plus, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { getActiveSchool, personaKey, journeyKey } from "../lib/schoolStore";
-
-interface JourneyStep {
-  id: string;
-  title: string;
-  description: string;
-  emotion: number;
-  touchpoint?: string;
-  opportunity?: string;
-}
+import { getActiveSchool, personaKey, journeyKey, journeyKeyByRole } from "../lib/schoolStore";
+import { useAutosave } from "../lib/useAutosave";
+import { SaveStatus } from "../components/SaveStatus";
+import type { JourneyStep } from "../lib/types";
+import { useDocumentMeta } from "../lib/useDocumentMeta";
 
 // ─── Role-specific default steps ─────────────────────────────────────────────
 
@@ -172,6 +167,11 @@ function StepCard({ step, index, onUpdate, onRemove, canRemove }: StepCardProps)
 export function JourneyMapEditor() {
   const navigate = useNavigate();
   const school = getActiveSchool();
+  useDocumentMeta({
+    title: "Journey Map | EduSystemDesign",
+    description: "Cartographie du parcours utilisateur",
+    robots: "noindex,nofollow",
+  });
 
   // Read active persona role from localStorage
   const currentPersona = (() => {
@@ -183,15 +183,20 @@ export function JourneyMapEditor() {
   })();
   const currentRole: string = currentPersona?.role ?? "Étudiant";
 
-  const storageKey = journeyKey(school.id);
+  const roleStorageKey = journeyKeyByRole(school.id, currentRole);
+  const legacyStorageKey = journeyKey(school.id);
 
   const [steps, setSteps] = useState<JourneyStep[]>(() => {
-    const saved = localStorage.getItem(storageKey);
-    return saved ? JSON.parse(saved) : getDefaultSteps(currentRole);
+    const roleSaved = localStorage.getItem(roleStorageKey);
+    if (roleSaved) return JSON.parse(roleSaved);
+    const legacySaved = localStorage.getItem(legacyStorageKey);
+    return legacySaved ? JSON.parse(legacySaved) : getDefaultSteps(currentRole);
   });
 
+  const { status: autosaveStatus, forceSave } = useAutosave(roleStorageKey, steps);
+
   const handleSave = () => {
-    localStorage.setItem(storageKey, JSON.stringify(steps));
+    forceSave();
     toast.success("Journey Map sauvegardée !");
   };
 
@@ -240,7 +245,8 @@ export function JourneyMapEditor() {
             <h1 className="text-2xl font-bold">Mission 2 : Journey Map</h1>
             <p className="text-sm text-gray-500">Nouveau Système de Gestion {school.name}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <SaveStatus status={autosaveStatus} />
             <Button onClick={resetToDefaults} variant="outline" className="gap-2">
               <RefreshCw className="w-4 h-4" />Templates {currentRole}
             </Button>

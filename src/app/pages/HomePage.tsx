@@ -3,16 +3,27 @@ import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { User, Route, FileText, Users, Building2, Settings, ArrowRight, CheckCircle2, BookOpen } from "lucide-react";
-import { getActiveSchool, getAllSchools, School } from "../lib/schoolStore";
+import { User, Route, FileText, Users, Building2, Settings, ArrowRight, CheckCircle2, BookOpen, Download, Upload, Presentation, BarChart3, Timer } from "lucide-react";
+import { getActiveSchool, getAllSchools, exportSchoolData, School } from "../lib/schoolStore";
+import { toast } from "sonner";
+import { ThemeToggle } from "../components/ThemeToggle";
+import { WorkshopTimer } from "../components/WorkshopTimer";
+import { useDocumentMeta } from "../lib/useDocumentMeta";
 
 export function HomePage() {
   const navigate = useNavigate();
   const [school, setSchool] = useState<School | null>(null);
+  const [showTimer, setShowTimer] = useState(false);
 
   useEffect(() => {
     setSchool(getActiveSchool());
   }, []);
+
+  useDocumentMeta({
+    title: "Accueil | EduSystemDesign",
+    description: "Accueil du projet UX/UI pour votre etablissement",
+    robots: "noindex,nofollow",
+  });
 
   if (!school) return null;
 
@@ -20,29 +31,47 @@ export function HomePage() {
   const typeColor = school.isDemo ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
 
       {/* Top navigation */}
-      <div className="bg-white border-b shadow-sm px-6 py-3">
+      <div className="bg-white dark:bg-slate-900 border-b border-border shadow-sm px-6 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
               {school.shortName?.charAt(0) ?? school.name.charAt(0)}
             </div>
             <div>
-              <p className="font-bold text-gray-900 text-sm">{school.name}</p>
-              <p className="text-xs text-gray-500">{school.city}, {school.country}</p>
+              <p className="font-bold text-foreground text-sm">{school.name}</p>
+              <p className="text-xs text-muted-foreground">{school.city}, {school.country}</p>
             </div>
             {school.isDemo && <Badge className="bg-amber-100 text-amber-700 text-xs">Démo</Badge>}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">{allSchools.length} établissement{allSchools.length > 1 ? "s" : ""} configuré{allSchools.length > 1 ? "s" : ""}</span>
+            <span className="text-xs text-muted-foreground">{allSchools.length} établissement{allSchools.length > 1 ? "s" : ""} configuré{allSchools.length > 1 ? "s" : ""}</span>
+            <Button variant="outline" size="sm" onClick={() => {
+              const data = exportSchoolData(school.id);
+              if (!data) return;
+              const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `${school.shortName || school.name}_export.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+              toast.success("Données exportées !");
+            }} className="gap-2">
+              <Download className="w-3 h-3" />Exporter
+            </Button>
             <Button variant="outline" size="sm" onClick={() => navigate("/")} className="gap-2">
               <Building2 className="w-3 h-3" />Changer d'école
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/school-setup")} className="gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/school-setup?edit=${school.id}`)} className="gap-2">
               <Settings className="w-3 h-3" />Configurer
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowTimer(true)} className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
+              <Timer className="w-3 h-3" />Workshop
+            </Button>
+            <ThemeToggle />
           </div>
         </div>
       </div>
@@ -55,11 +84,11 @@ export function HomePage() {
             <BookOpen className="w-4 h-4" />
             {school.type || "Établissement d'enseignement supérieur"}
           </div>
-          <h1 className="text-4xl font-bold mb-3 text-gray-900">
+          <h1 className="text-4xl font-bold mb-3 text-foreground">
             Nouveau Système de Gestion<br />
             <span className="text-blue-600">{school.name}</span>
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Concevoir le remplaçant de{" "}
             <span className="font-semibold">{school.currentSoftware || "l'ancien système"}</span>
             {" "} — Projet UX/UI pour Étudiants, Enseignants &amp; Administration
@@ -140,27 +169,51 @@ export function HomePage() {
 
         {/* Bottom Tools */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-all cursor-pointer group" onClick={() => navigate("/compare")}>
+          <Card className="hover:shadow-lg transition-all cursor-pointer group bg-card text-card-foreground" onClick={() => navigate("/present")}>
+            <CardContent className="py-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition-colors flex-shrink-0">
+                <Presentation className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-card-foreground">Mode Présentation</h3>
+                <p className="text-sm text-muted-foreground">Diaporama plein écran : contexte, personas, journey maps et insights clés</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-amber-600 transition-colors" />
+            </CardContent>
+          </Card>
+          <Card className="hover:shadow-lg transition-all cursor-pointer group bg-card text-card-foreground" onClick={() => navigate("/analytics")}>
+            <CardContent className="py-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center group-hover:bg-cyan-200 transition-colors flex-shrink-0">
+                <BarChart3 className="w-6 h-6 text-cyan-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-card-foreground">Analytics</h3>
+                <p className="text-sm text-muted-foreground">Dashboard d'insights : points communs, profils tech, bottlenecks émotionnels</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-cyan-600 transition-colors" />
+            </CardContent>
+          </Card>
+          <Card className="hover:shadow-lg transition-all cursor-pointer group bg-card text-card-foreground" onClick={() => navigate("/compare")}>
             <CardContent className="py-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center group-hover:bg-indigo-200 transition-colors flex-shrink-0">
                 <Users className="w-6 h-6 text-indigo-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-gray-900">Mode Comparaison</h3>
-                <p className="text-sm text-gray-500">Comparez les 3 personas côte à côte : valeurs, besoins, frustrations, tech profile</p>
+                <h3 className="font-bold text-card-foreground">Mode Comparaison</h3>
+                <p className="text-sm text-muted-foreground">Comparez les 3 personas côte à côte : valeurs, besoins, frustrations, tech profile</p>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-all cursor-pointer group" onClick={() => navigate("/school-setup")}>
+          <Card className="hover:shadow-lg transition-all cursor-pointer group bg-card text-card-foreground" onClick={() => navigate("/school-setup")}>
             <CardContent className="py-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center group-hover:bg-orange-200 transition-colors flex-shrink-0">
                 <Settings className="w-6 h-6 text-orange-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-gray-900">Configurer l'établissement</h3>
-                <p className="text-sm text-gray-500">Modifier les informations de {school.name} : programmes, effectifs, système actuel, besoins</p>
+                <h3 className="font-bold text-card-foreground">Configurer l'établissement</h3>
+                <p className="text-sm text-muted-foreground">Modifier les informations de {school.name} : programmes, effectifs, système actuel, besoins</p>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-orange-600 transition-colors" />
             </CardContent>
@@ -177,8 +230,8 @@ export function HomePage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-1">
-                    {school.currentPainPoints.split("\n").filter(Boolean).slice(0, 5).map((p, i) => (
-                      <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                    {school.currentPainPoints.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).slice(0, 5).map((p, i) => (
+                      <li key={i} className="text-sm text-gray-800 flex items-start gap-2 leading-relaxed">
                         <span className="text-red-500 flex-shrink-0">•</span>{p}
                       </li>
                     ))}
@@ -193,8 +246,8 @@ export function HomePage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-1">
-                    {school.mustHave.split("\n").filter(Boolean).slice(0, 5).map((f, i) => (
-                      <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                    {school.mustHave.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).slice(0, 5).map((f, i) => (
+                      <li key={i} className="text-sm text-gray-800 flex items-start gap-2 leading-relaxed">
                         <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{f}
                       </li>
                     ))}
@@ -206,7 +259,7 @@ export function HomePage() {
         )}
 
         {/* Instructions */}
-        <Card className="bg-white/80">
+        <Card className="bg-white/80 dark:bg-slate-900/90">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
@@ -215,24 +268,35 @@ export function HomePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {[
-              { n: "1", color: "blue", title: "Répartition", desc: "3 groupes de 3 étudiants — chaque groupe prend un rôle : Étudiant, Enseignant ou Administration" },
-              { n: "2", color: "green", title: "Mission 1 — Persona (30 min)", desc: `Créez un persona ultra-détaillé (7 onglets) pour votre rôle dans le contexte de ${school.name}. Photo, vie personnelle, valeurs, peurs, besoins système.` },
-              { n: "3", color: "purple", title: "Mission 2 — Journey Map (45 min)", desc: "Tracez le parcours utilisateur avec courbe d'émotion. Templates spécifiques par rôle disponibles. Identifiez touchpoints et opportunités." },
-              { n: "4", color: "orange", title: "Livrable — Poster Final", desc: "Exportez le poster PDF professionnel. Utilisez le mode comparaison pour présenter les 3 rôles côte à côte." }
-            ].map(item => (
-              <div key={item.n} className="flex items-start gap-3">
-                <div className={`bg-${item.color}-100 text-${item.color}-700 rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0`}>
-                  {item.n}
+              { n: "1", color: "blue" as const, title: "Répartition", desc: "3 groupes de 3 étudiants — chaque groupe prend un rôle : Étudiant, Enseignant ou Administration" },
+              { n: "2", color: "green" as const, title: "Mission 1 — Persona (30 min)", desc: `Créez un persona ultra-détaillé (7 onglets) pour votre rôle dans le contexte de ${school.name}. Photo, vie personnelle, valeurs, peurs, besoins système.` },
+              { n: "3", color: "purple" as const, title: "Mission 2 — Journey Map (45 min)", desc: "Tracez le parcours utilisateur avec courbe d'émotion. Templates spécifiques par rôle disponibles. Identifiez touchpoints et opportunités." },
+              { n: "4", color: "orange" as const, title: "Livrable — Poster Final", desc: "Exportez le poster PDF professionnel. Utilisez le mode comparaison pour présenter les 3 rôles côte à côte." }
+            ].map(item => {
+              const COLOR_MAP: Record<string, string> = {
+                blue: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200",
+                green: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200",
+                purple: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-200",
+                orange: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-200",
+              };
+              return (
+                <div key={item.n} className="flex items-start gap-3">
+                  <div className={`${COLOR_MAP[item.color]} rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0`}>
+                    {item.n}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-0.5 text-foreground">{item.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-0.5">{item.title}</h3>
-                  <p className="text-gray-600 text-sm">{item.desc}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
+
+      {/* Workshop Timer */}
+      {showTimer && <WorkshopTimer onClose={() => setShowTimer(false)} />}
     </div>
   );
 }

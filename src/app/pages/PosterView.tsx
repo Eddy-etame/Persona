@@ -5,18 +5,22 @@ import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { ArrowLeft, Download, MapPin, Home, Train, Clock, Smartphone, GraduationCap, Briefcase, Settings, Heart, FileDown } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { toast } from "sonner";
 import { getActiveSchool, personaKey, journeyKey } from "../lib/schoolStore";
-import type { Persona } from "./PersonaEditor";
-
-interface JourneyStep {
-  id: string; title: string; description: string; emotion: number;
-  touchpoint?: string; opportunity?: string;
-}
+import type { Persona, JourneyStep } from "../lib/types";
+import { exportElementToPdf } from "../lib/pdfExport";
+import { useDocumentMeta } from "../lib/useDocumentMeta";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 export function PosterView() {
   const navigate = useNavigate();
   const posterRef = useRef<HTMLDivElement>(null);
   const school = getActiveSchool();
+  useDocumentMeta({
+    title: "Poster | EduSystemDesign",
+    description: "Poster final et export PDF",
+    robots: "noindex,nofollow",
+  });
 
   const [persona] = useState<Persona | null>(() => {
     const saved = localStorage.getItem(personaKey(school.id));
@@ -42,56 +46,29 @@ export function PosterView() {
     if (!posterRef.current) return;
     setExporting(true);
     try {
-      const { default: jsPDF } = await import("jspdf");
-      const { default: html2canvas } = await import("html2canvas");
-      const canvas = await html2canvas(posterRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff"
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4"
-      });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      let heightLeft = pdfHeight;
-      let position = 0;
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
       const fileName = `Poster_${persona?.name || "Persona"}_${school.shortName || school.name}.pdf`;
-      pdf.save(fileName);
-      toast("PDF exporté avec succès !");
+      await exportElementToPdf({
+        element: posterRef.current,
+        fileName,
+        format: "a4",
+        orientation: "portrait",
+        backgroundColor: "#ffffff",
+        marginMm: 8,
+      });
+      toast.success("PDF exporté avec succès !");
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de l'export PDF. Essayez l'impression navigateur.");
+      toast.error("Export PDF impossible. Utilisez l'impression navigateur.");
+      const usePrint = window.confirm("L'export PDF a échoué. Voulez-vous lancer l'impression navigateur ?");
+      if (usePrint) handlePrint();
     } finally {
       setExporting(false);
     }
   };
 
-  // Simple toast fallback
-  function toast(msg: string) {
-    const el = document.createElement("div");
-    el.textContent = msg;
-    el.style.cssText = "position:fixed;bottom:24px;right:24px;background:#22c55e;color:white;padding:12px 20px;border-radius:8px;z-index:9999;font-size:14px;";
-    document.body.appendChild(el);
-    setTimeout(() => document.body.removeChild(el), 3000);
-  }
-
   if (!persona || journeySteps.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-950 dark:to-slate-900 p-8">
         <div className="max-w-6xl mx-auto text-center">
           <Button variant="outline" onClick={() => navigate("/home")} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />Retour
@@ -121,7 +98,7 @@ export function PosterView() {
     ? (journeySteps.reduce((a, s) => a + s.emotion, 0) / journeySteps.length).toFixed(1) : "0";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-950 dark:to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Controls */}
         <div className="flex items-center justify-between mb-6 print:hidden">
@@ -137,6 +114,7 @@ export function PosterView() {
               <FileDown className="w-4 h-4 mr-2" />
               {exporting ? "Export en cours..." : "Export PDF"}
             </Button>
+            <ThemeToggle />
           </div>
         </div>
 
