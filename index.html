@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
     <meta name="theme-color" content="#3b82f6" />
     <meta name="description" content="EduSystemDesign — Plateforme de conception UX/UI pour l'enseignement supérieur" />
     <meta name="robots" content="index,follow" />
@@ -32,6 +33,15 @@
       }
     </script>
     <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+    <script>
+      // Force le rechargement si un module dynamique (chunk) echoue (cas des mises a jour)
+      window.addEventListener('error', (e) => {
+        if (e.message && (e.message.includes('Failed to fetch dynamically imported module') || e.message.includes('Importing a stopped script'))) {
+          console.warn('Chunk load error detected, reloading page...');
+          window.location.reload();
+        }
+      }, true);
+    </script>
   </head>
 
   <body>
