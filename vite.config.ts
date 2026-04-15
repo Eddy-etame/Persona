@@ -19,4 +19,7 @@ export default defineConfig({
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+  preview: {
+    allowedHosts: ['persona-m4i2.onrender.com', '.onrender.com']
+  }
 })
