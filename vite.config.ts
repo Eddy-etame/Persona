@@ -3,6 +3,9 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [
@@ -83,4 +86,7 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    allowedHosts: ['persona-m4i2.onrender.com', '.onrender.com']
+  }
 })
