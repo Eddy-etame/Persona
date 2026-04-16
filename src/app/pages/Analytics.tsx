@@ -155,10 +155,10 @@ export function Analytics() {
     .sort((a, b) => a.emotion - b.emotion);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50 dark:from-slate-950 dark:to-slate-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
           <Button variant="outline" onClick={() => navigate("/home")}>
             <ArrowLeft className="w-4 h-4 mr-2" />Retour
           </Button>
@@ -280,8 +280,9 @@ export function Analytics() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-6">
-                <ResponsiveContainer width="50%" height={180}>
+              <div className="flex flex-col md:flex-row md:items-center gap-6">
+                <div className="w-full md:w-1/2 h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={deviceData} cx="50%" cy="50%" outerRadius={70} dataKey="value" label={({ name }) => name}>
                       {deviceData.map((_, i) => (
@@ -290,8 +291,9 @@ export function Analytics() {
                     </Pie>
                     <Tooltip />
                   </PieChart>
-                </ResponsiveContainer>
-                <div className="space-y-2">
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-2 w-full md:w-1/2">
                   {availableRoles.map(role => (
                     <div key={role} className="text-xs">
                       <span className="font-semibold" style={{ color: ROLE_COLORS[role] }}>{role}:</span>

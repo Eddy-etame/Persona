@@ -6,8 +6,11 @@ interface ExportPdfOptions {
   fileName: string;
   format?: "a4" | "a3";
   orientation?: "portrait" | "landscape";
-  backgroundColor?: string;
+  backgroundColor?: string | null;
   marginMm?: number;
+  imageType?: "png" | "jpeg";
+  quality?: number;
+  scale?: number;
 }
 
 type JsPdfCtor = new (options?: {
@@ -37,8 +40,11 @@ export async function exportElementToPdf({
   fileName,
   format = "a4",
   orientation = "portrait",
-  backgroundColor = "#ffffff",
+  backgroundColor = null,
   marginMm = 8,
+  imageType = "png",
+  quality = 0.92,
+  scale,
 }: ExportPdfOptions) {
   const [jspdfModule, html2canvasModule]: [JsPdfModule, Html2CanvasModule] = await Promise.all([
     import("jspdf"),
@@ -50,12 +56,14 @@ export async function exportElementToPdf({
     throw new Error("Impossible de charger html2canvas.");
   }
 
+  const safeScale = scale ?? (Math.max(element.scrollHeight, element.clientHeight) > 3500 ? 1.5 : 2);
+
   const canvas = await html2canvas(element, {
-    scale: 2,
+    scale: safeScale,
     useCORS: true,
     backgroundColor,
     allowTaint: false,
-    logging: true, // Aide à diagnostiquer les erreurs CORS
+    logging: false,
   });
   
   if (!canvas || canvas.width === 0 || canvas.height === 0) {
@@ -73,31 +81,68 @@ export async function exportElementToPdf({
   const contentWidth = pageWidth - marginMm * 2;
   const contentHeight = pageHeight - marginMm * 2;
 
-  const imgWidthMm = contentWidth;
-  const imgHeightMm = (canvas.height * imgWidthMm) / canvas.width;
+  const pageHeightPx = Math.max(1, Math.floor((contentHeight * canvas.width) / contentWidth));
+  const totalPages = Math.max(1, Math.ceil(canvas.height / pageHeightPx));
 
-  let remainingHeight = imgHeightMm;
-  let yOffset = 0;
+  for (let pageIndex = 0; pageIndex < totalPages; pageIndex += 1) {
+    const srcY = pageIndex * pageHeightPx;
+    const sliceHeightPx = Math.min(pageHeightPx, canvas.height - srcY);
+    if (sliceHeightPx <= 0) break;
 
-  let imgData: string;
-  try {
-    imgData = canvas.toDataURL("image/png");
-  } catch {
-    throw new Error("Impossible de générer l'image PDF depuis le canvas.");
-  }
-  pdf.addImage(imgData, "PNG", marginMm, marginMm + yOffset, imgWidthMm, imgHeightMm);
-  remainingHeight -= contentHeight;
+    const pageCanvas = document.createElement("canvas");
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = sliceHeightPx;
+    const ctx = pageCanvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Impossible de préparer la pagination PDF.");
+    }
 
-  while (remainingHeight > 0) {
-    yOffset = remainingHeight - imgHeightMm;
-    pdf.addPage();
-    pdf.addImage(imgData, "PNG", marginMm, marginMm + yOffset, imgWidthMm, imgHeightMm);
-    remainingHeight -= contentHeight;
+    ctx.drawImage(
+      canvas,
+      0,
+      srcY,
+      canvas.width,
+      sliceHeightPx,
+      0,
+      0,
+      pageCanvas.width,
+      pageCanvas.height,
+    );
+
+    let mimeType = imageType === "jpeg" ? "image/jpeg" : "image/png";
+    let imgData: string;
+
+    try {
+      imgData = pageCanvas.toDataURL(mimeType, quality);
+    } catch {
+      mimeType = "image/jpeg";
+      try {
+        imgData = pageCanvas.toDataURL(mimeType, quality);
+      } catch {
+        throw new Error("Impossible de générer une image PDF (PNG/JPEG).");
+      }
+    }
+
+    const sliceHeightMm = (sliceHeightPx * contentWidth) / canvas.width;
+
+    if (pageIndex > 0) {
+      pdf.addPage();
+    }
+
+    pdf.addImage(
+      imgData,
+      mimeType === "image/jpeg" ? "JPEG" : "PNG",
+      marginMm,
+      marginMm,
+      contentWidth,
+      sliceHeightMm,
+    );
   }
 
   try {
     pdf.save(fileName);
-  } catch {
+  } catch (error) {
+    console.error("PDF save error:", error);
     throw new Error("Echec lors de l'enregistrement du PDF.");
   }
 }

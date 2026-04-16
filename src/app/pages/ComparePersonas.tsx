@@ -286,14 +286,19 @@ export function ComparePersonas() {
   }
 
   const columnCount = availablePersonas.length;
-  const gridClass = columnCount === 1 ? "grid-cols-1 max-w-lg" : columnCount === 2 ? "grid-cols-2" : "grid-cols-3";
+  const gridClass =
+    columnCount === 1
+      ? "grid-cols-1 max-w-lg"
+      : columnCount === 2
+      ? "grid-cols-1 sm:grid-cols-2"
+      : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
 
   return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-950 dark:to-slate-900 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-950 dark:to-slate-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
           <Button variant="outline" onClick={() => navigate("/home")}>
             <ArrowLeft className="w-4 h-4 mr-2" />Retour
           </Button>
@@ -303,7 +308,7 @@ export function ComparePersonas() {
             </h1>
             <p className="text-sm text-muted-foreground">Analyse côte à côte des {availablePersonas.length} personas enregistrés</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button variant="outline" disabled={exporting} onClick={async () => {
               setExporting(true);
               try {
@@ -314,8 +319,9 @@ export function ComparePersonas() {
                   fileName: `comparaison_${school.shortName || school.name}.pdf`,
                   format: "a3",
                   orientation: "landscape",
-                  backgroundColor: "#f8fafc",
+                  backgroundColor: null,
                   marginMm: 8,
+                  imageType: "png",
                 });
                 toast.success("PDF de comparaison exporté !");
               } catch (err) {

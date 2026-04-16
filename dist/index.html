@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
     <meta name="theme-color" content="#3b82f6" />
-    <meta name="description" content="EduSystemDesign — Plateforme de conception UX/UI pour l'enseignement supérieur" />
+    <meta name="description" content="Plateforme UX/UI de conception de systemes de gestion pour l'enseignement superieur" />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://example.com" />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://example.com/" />
     <meta property="og:type" content="website" />
@@ -32,15 +35,24 @@
       }
     </script>
     <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-    <script type="module" crossorigin src="/assets/index-C61aTV_r.js"></script>
+    <script>
+      // Force le rechargement si un module dynamique (chunk) echoue (cas des mises a jour)
+      window.addEventListener('error', (e) => {
+        if (e.message && (e.message.includes('Failed to fetch dynamically imported module') || e.message.includes('Importing a stopped script'))) {
+          console.warn('Chunk load error detected, reloading page...');
+          window.location.reload();
+        }
+      }, true);
+    </script>
+    <script type="module" crossorigin src="/assets/index-BM6psOba.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/router-6f6jsWPR.js">
     <link rel="modulepreload" crossorigin href="/assets/radix-ui-XmQYzxCT.js">
     <link rel="modulepreload" crossorigin href="/assets/pdf-export-BM8l5QPg.js">
     <link rel="modulepreload" crossorigin href="/assets/charts-CU8l0POV.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BctSWs8d.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-B8MeEYTP.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
 
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>

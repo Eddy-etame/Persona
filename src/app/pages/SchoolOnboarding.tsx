@@ -10,6 +10,9 @@ import { ArrowLeft, ArrowRight, Save, Building2, Users, BookOpen, Monitor, Setti
 import { toast } from "sonner";
 import { School, saveSchool, setActiveSchoolId, generateSchoolId, getSchoolById, SCHOOL_TYPES, COUNTRIES } from "../lib/schoolStore";
 import { SCHOOL_TEMPLATES } from "../lib/schoolTemplates";
+import { ThemeToggle } from "../components/ThemeToggle";
+import { PageShell } from "../components/layout/PageShell";
+import { TopActions } from "../components/layout/TopActions";
 
 // ─── Field helpers (defined outside to avoid focus loss) ─────────────────────
 
@@ -21,12 +24,12 @@ function FF({
 }) {
   return (
     <div>
-      <Label className="mb-1 block text-sm font-medium">{label}</Label>
-      {hint && <p className="text-xs text-gray-500 mb-1">{hint}</p>}
+      <Label className="mb-1 block text-sm font-medium text-foreground">{label}</Label>
+      {hint && <p className="text-xs text-muted-foreground mb-1">{hint}</p>}
       {rows ? (
-        <Textarea placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} rows={rows} />
+        <Textarea className="text-foreground placeholder:text-muted-foreground" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} rows={rows} />
       ) : (
-        <Input placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
+        <Input className="text-foreground placeholder:text-muted-foreground" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
       )}
     </div>
   );
@@ -40,9 +43,9 @@ function FS({
 }) {
   return (
     <div>
-      <Label className="mb-1 block text-sm font-medium">{label}</Label>
+      <Label className="mb-1 block text-sm font-medium text-foreground">{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger><SelectValue placeholder={placeholder ?? "Choisir..."} /></SelectTrigger>
+        <SelectTrigger className="text-foreground"><SelectValue placeholder={placeholder ?? "Choisir..."} /></SelectTrigger>
         <SelectContent>
           {options.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
         </SelectContent>
@@ -161,27 +164,30 @@ export function SchoolOnboarding() {
   const progress = Math.round(((step + 1) / STEPS.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <PageShell contentClassName="max-w-4xl" className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
 
       {/* Top Bar */}
-      <div className="bg-white border-b shadow-sm px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <div className="bg-card/95 border-b border-border shadow-sm px-3 sm:px-6 py-3 sm:py-4 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           <Button variant="ghost" onClick={goPrev} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
             {step === 0 ? "Retour" : "Précédent"}
           </Button>
           <div className="text-center">
-            <p className="text-sm text-gray-500">Étape {step + 1} / {STEPS.length}</p>
-            <p className="font-semibold text-gray-900">{STEPS[step].label}</p>
+            <p className="text-sm text-muted-foreground">Étape {step + 1} / {STEPS.length}</p>
+            <p className="font-semibold text-foreground">{STEPS[step].label}</p>
           </div>
-          <Button variant="outline" onClick={handleSave} className="gap-2">
-            <Save className="w-4 h-4" />
-            Sauvegarder
-          </Button>
+          <TopActions>
+            <Button variant="outline" onClick={handleSave} className="gap-2">
+              <Save className="w-4 h-4" />
+              Sauvegarder
+            </Button>
+            <ThemeToggle />
+          </TopActions>
         </div>
         {/* Progress bar */}
         <div className="max-w-4xl mx-auto mt-3">
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-muted rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -191,18 +197,18 @@ export function SchoolOnboarding() {
       </div>
 
       {/* Step Pills */}
-      <div className="bg-white border-b overflow-x-auto">
-        <div className="max-w-4xl mx-auto px-6 py-3 flex gap-2 min-w-max">
+      <div className="bg-card border-b border-border overflow-x-auto">
+        <div className="max-w-4xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex gap-1.5 sm:gap-2 min-w-max">
           {STEPS.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setStep(i)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] sm:text-xs font-medium transition-all whitespace-nowrap ${
                 i === step
                   ? "bg-blue-600 text-white"
                   : i < step
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-500"
+                  ? "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
               {i < step ? <CheckCircle2 className="w-3 h-3" /> : <s.icon className="w-3 h-3" />}
@@ -213,7 +219,7 @@ export function SchoolOnboarding() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 py-6 sm:py-8">
 
         {/* ── STEP 0 : IDENTITÉ ── */}
         {step === 0 && (
@@ -228,8 +234,8 @@ export function SchoolOnboarding() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-4">Sélectionnez un type d'établissement pour pré-remplir les champs, ou commencez de zéro.</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <p className="text-sm text-muted-foreground mb-4">Sélectionnez un type d'établissement pour pré-remplir les champs, ou commencez de zéro.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {SCHOOL_TEMPLATES.map(tpl => (
                       <button
                         key={tpl.id}
@@ -237,8 +243,8 @@ export function SchoolOnboarding() {
                         className="text-left border rounded-lg p-3 hover:border-blue-400 hover:bg-blue-50 transition-all group"
                       >
                         <div className="text-2xl mb-1">{tpl.emoji}</div>
-                        <div className="font-medium text-sm text-gray-900 group-hover:text-blue-700">{tpl.label}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{tpl.description}</div>
+                        <div className="font-medium text-sm text-foreground group-hover:text-blue-700 dark:group-hover:text-blue-300">{tpl.label}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{tpl.description}</div>
                       </button>
                     ))}
                     <button
@@ -246,8 +252,8 @@ export function SchoolOnboarding() {
                       className="text-left border border-dashed rounded-lg p-3 hover:border-gray-400 transition-all"
                     >
                       <div className="text-2xl mb-1">📝</div>
-                      <div className="font-medium text-sm text-gray-600">Commencer de zéro</div>
-                      <div className="text-xs text-gray-400 mt-0.5">Remplissez chaque champ manuellement</div>
+                      <div className="font-medium text-sm text-muted-foreground">Commencer de zéro</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">Remplissez chaque champ manuellement</div>
                     </button>
                   </div>
                 </CardContent>
@@ -255,11 +261,11 @@ export function SchoolOnboarding() {
             )}
 
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <Building2 className="w-7 h-7 text-blue-600" />
                 Identité de l'établissement
               </h2>
-              <p className="text-gray-500 mt-1">Ces informations seront utilisées dans tout le système pour personnaliser l'expérience.</p>
+              <p className="text-muted-foreground mt-1">Ces informations seront utilisées dans tout le système pour personnaliser l'expérience.</p>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -299,11 +305,11 @@ export function SchoolOnboarding() {
         {step === 1 && (
           <div className="space-y-4">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <Users className="w-7 h-7 text-green-600" />
                 Effectifs & Organisation
               </h2>
-              <p className="text-gray-500 mt-1">Comprendre l'échelle et la structure pour calibrer le système.</p>
+              <p className="text-muted-foreground mt-1">Comprendre l'échelle et la structure pour calibrer le système.</p>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <FF label="Nombre total d'étudiants" value={school.totalStudents} onChange={v => u("totalStudents", v)}
@@ -337,11 +343,11 @@ export function SchoolOnboarding() {
         {step === 2 && (
           <div className="space-y-4">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <BookOpen className="w-7 h-7 text-purple-600" />
                 Offre Pédagogique & Programmes
               </h2>
-              <p className="text-gray-500 mt-1">Ces informations permettent de créer des personas et journey maps spécifiques à votre offre.</p>
+              <p className="text-muted-foreground mt-1">Ces informations permettent de créer des personas et journey maps spécifiques à votre offre.</p>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -375,11 +381,11 @@ export function SchoolOnboarding() {
         {step === 3 && (
           <div className="space-y-4">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <Monitor className="w-7 h-7 text-orange-600" />
                 Système de Gestion Actuel
               </h2>
-              <p className="text-gray-500 mt-1">Comprendre d'où vous partez pour mieux définir où aller.</p>
+              <p className="text-muted-foreground mt-1">Comprendre d'où vous partez pour mieux définir où aller.</p>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <FF label="Logiciel(s) actuellement utilisé(s)" value={school.currentSoftware} onChange={v => u("currentSoftware", v)}
@@ -420,11 +426,11 @@ export function SchoolOnboarding() {
         {step === 4 && (
           <div className="space-y-4">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <Settings className="w-7 h-7 text-teal-600" />
                 Processus & Workflows Clés
               </h2>
-              <p className="text-gray-500 mt-1">Les processus métier qui doivent être pris en charge par le nouveau système.</p>
+              <p className="text-muted-foreground mt-1">Les processus métier qui doivent être pris en charge par le nouveau système.</p>
             </div>
             <div className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
@@ -461,11 +467,11 @@ export function SchoolOnboarding() {
         {step === 5 && (
           <div className="space-y-4">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <Users className="w-7 h-7 text-pink-600" />
                 Profils Utilisateurs & Parties Prenantes
               </h2>
-              <p className="text-gray-500 mt-1">Qui utilisera le système et quels sont leurs besoins spécifiques ?</p>
+              <p className="text-muted-foreground mt-1">Qui utilisera le système et quels sont leurs besoins spécifiques ?</p>
             </div>
             <div className="space-y-4">
               <Card className="border-blue-200 bg-blue-50/50">
@@ -514,11 +520,11 @@ export function SchoolOnboarding() {
         {step === 6 && (
           <div className="space-y-4">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <Layers className="w-7 h-7 text-indigo-600" />
                 Infrastructure Technologique
               </h2>
-              <p className="text-gray-500 mt-1">L'environnement technique conditionne les choix de solution.</p>
+              <p className="text-muted-foreground mt-1">L'environnement technique conditionne les choix de solution.</p>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -572,11 +578,11 @@ export function SchoolOnboarding() {
         {step === 7 && (
           <div className="space-y-4">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <Target className="w-7 h-7 text-red-600" />
                 Vision, Besoins & Priorités
               </h2>
-              <p className="text-gray-500 mt-1">Ce que vous voulez vraiment atteindre avec ce nouveau système.</p>
+              <p className="text-muted-foreground mt-1">Ce que vous voulez vraiment atteindre avec ce nouveau système.</p>
             </div>
             <div className="space-y-4">
               <div className="md:col-span-2">
@@ -619,11 +625,11 @@ export function SchoolOnboarding() {
         {step === 8 && (
           <div className="space-y-4">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <Heart className="w-7 h-7 text-rose-600" />
                 Culture, Valeurs & Spécificités
               </h2>
-              <p className="text-gray-500 mt-1">Comprendre l'ADN de votre établissement pour un système qui vous ressemble.</p>
+              <p className="text-muted-foreground mt-1">Comprendre l'ADN de votre établissement pour un système qui vous ressemble.</p>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -659,12 +665,12 @@ export function SchoolOnboarding() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-3 text-sm">
-                <div><span className="font-semibold text-gray-700">Établissement : </span><span className="text-gray-600">{school.name || "—"}</span></div>
-                <div><span className="font-semibold text-gray-700">Type : </span><span className="text-gray-600">{school.type || "—"}</span></div>
-                <div><span className="font-semibold text-gray-700">Localisation : </span><span className="text-gray-600">{school.city}{school.city && school.country ? ", " : ""}{school.country || "—"}</span></div>
-                <div><span className="font-semibold text-gray-700">Étudiants : </span><span className="text-gray-600">{school.totalStudents || "—"}</span></div>
-                <div><span className="font-semibold text-gray-700">Système actuel : </span><span className="text-gray-600">{school.currentSoftware || "—"}</span></div>
-                <div><span className="font-semibold text-gray-700">Budget : </span><span className="text-gray-600">{school.budget || "—"}</span></div>
+                <div><span className="font-semibold text-foreground">Établissement : </span><span className="text-muted-foreground">{school.name || "—"}</span></div>
+                <div><span className="font-semibold text-foreground">Type : </span><span className="text-muted-foreground">{school.type || "—"}</span></div>
+                <div><span className="font-semibold text-foreground">Localisation : </span><span className="text-muted-foreground">{school.city}{school.city && school.country ? ", " : ""}{school.country || "—"}</span></div>
+                <div><span className="font-semibold text-foreground">Étudiants : </span><span className="text-muted-foreground">{school.totalStudents || "—"}</span></div>
+                <div><span className="font-semibold text-foreground">Système actuel : </span><span className="text-muted-foreground">{school.currentSoftware || "—"}</span></div>
+                <div><span className="font-semibold text-foreground">Budget : </span><span className="text-muted-foreground">{school.budget || "—"}</span></div>
               </CardContent>
             </Card>
           </div>
@@ -691,6 +697,6 @@ export function SchoolOnboarding() {
           </Button>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

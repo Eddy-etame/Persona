@@ -34,8 +34,8 @@ export function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
 
       {/* Top navigation */}
-      <div className="bg-white dark:bg-slate-900 border-b border-border shadow-sm px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="bg-white dark:bg-slate-900 border-b border-border shadow-sm px-3 sm:px-6 py-3">
+        <div className="max-w-7xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
               {school.shortName?.charAt(0) ?? school.name.charAt(0)}
@@ -46,8 +46,10 @@ export function HomePage() {
             </div>
             {school.isDemo && <Badge className="bg-amber-100 text-amber-700 text-xs">Démo</Badge>}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{allSchools.length} établissement{allSchools.length > 1 ? "s" : ""} configuré{allSchools.length > 1 ? "s" : ""}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground w-full sm:w-auto">
+              {allSchools.length} établissement{allSchools.length > 1 ? "s" : ""} configuré{allSchools.length > 1 ? "s" : ""}
+            </span>
             <Button variant="outline" size="sm" onClick={() => {
               const data = exportSchoolData(school.id);
               if (!data) return;
@@ -60,23 +62,27 @@ export function HomePage() {
               URL.revokeObjectURL(url);
               toast.success("Données exportées !");
             }} className="gap-2">
-              <Download className="w-3 h-3" />Exporter
+              <Download className="w-3 h-3" />
+              <span className="hidden sm:inline">Exporter</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => navigate("/")} className="gap-2">
-              <Building2 className="w-3 h-3" />Changer d'école
+              <Building2 className="w-3 h-3" />
+              <span className="hidden sm:inline">Changer d'école</span>
             </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate(`/school-setup?edit=${school.id}`)} className="gap-2">
-              <Settings className="w-3 h-3" />Configurer
+              <Settings className="w-3 h-3" />
+              <span className="hidden sm:inline">Configurer</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => setShowTimer(true)} className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
-              <Timer className="w-3 h-3" />Workshop
+              <Timer className="w-3 h-3" />
+              <span className="hidden sm:inline">Workshop</span>
             </Button>
             <ThemeToggle />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto p-3 sm:p-8">
 
         {/* Hero */}
         <div className="text-center mb-10">
@@ -93,7 +99,7 @@ export function HomePage() {
             <span className="font-semibold">{school.currentSoftware || "l'ancien système"}</span>
             {" "} — Projet UX/UI pour Étudiants, Enseignants &amp; Administration
           </p>
-          <div className="flex items-center justify-center gap-4 mt-4 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-4 text-sm text-muted-foreground">
             {school.totalStudents && <span>👨‍🎓 {school.totalStudents}</span>}
             {school.totalTeachers && <span>👨‍🏫 {school.totalTeachers}</span>}
             {school.campusCount && <span>🏛️ {school.campusCount} campus</span>}
@@ -102,14 +108,14 @@ export function HomePage() {
         </div>
 
         {/* Main Missions */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <Card className="hover:shadow-lg transition-all hover:-translate-y-0.5 cursor-pointer group" onClick={() => navigate("/persona")}>
             <CardHeader>
               <div className="flex items-center justify-between mb-2">
                 <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                   <User className="w-6 h-6 text-blue-600" />
                 </div>
-                <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Mission 1 · 30 min</span>
+                <span className="text-xs sm:text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Mission 1 · 30 min</span>
               </div>
               <CardTitle>Créer un Persona</CardTitle>
               <CardDescription>
@@ -168,52 +174,52 @@ export function HomePage() {
         </div>
 
         {/* Bottom Tools */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
           <Card className="hover:shadow-lg transition-all cursor-pointer group bg-card text-card-foreground" onClick={() => navigate("/present")}>
-            <CardContent className="py-6 flex items-center gap-4">
+            <CardContent className="py-6 flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition-colors flex-shrink-0">
                 <Presentation className="w-6 h-6 text-amber-600" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-card-foreground">Mode Présentation</h3>
-                <p className="text-sm text-muted-foreground">Diaporama plein écran : contexte, personas, journey maps et insights clés</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-card-foreground break-words">Mode Présentation</h3>
+                <p className="text-sm text-muted-foreground break-words">Diaporama plein écran : contexte, personas, journey maps et insights clés</p>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-amber-600 transition-colors" />
             </CardContent>
           </Card>
           <Card className="hover:shadow-lg transition-all cursor-pointer group bg-card text-card-foreground" onClick={() => navigate("/analytics")}>
-            <CardContent className="py-6 flex items-center gap-4">
+            <CardContent className="py-6 flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center group-hover:bg-cyan-200 transition-colors flex-shrink-0">
                 <BarChart3 className="w-6 h-6 text-cyan-600" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-card-foreground">Analytics</h3>
-                <p className="text-sm text-muted-foreground">Dashboard d'insights : points communs, profils tech, bottlenecks émotionnels</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-card-foreground break-words">Analytics</h3>
+                <p className="text-sm text-muted-foreground break-words">Dashboard d'insights : points communs, profils tech, bottlenecks émotionnels</p>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-cyan-600 transition-colors" />
             </CardContent>
           </Card>
           <Card className="hover:shadow-lg transition-all cursor-pointer group bg-card text-card-foreground" onClick={() => navigate("/compare")}>
-            <CardContent className="py-6 flex items-center gap-4">
+            <CardContent className="py-6 flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center group-hover:bg-indigo-200 transition-colors flex-shrink-0">
                 <Users className="w-6 h-6 text-indigo-600" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-card-foreground">Mode Comparaison</h3>
-                <p className="text-sm text-muted-foreground">Comparez les 3 personas côte à côte : valeurs, besoins, frustrations, tech profile</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-card-foreground break-words">Mode Comparaison</h3>
+                <p className="text-sm text-muted-foreground break-words">Comparez les 3 personas côte à côte : valeurs, besoins, frustrations, tech profile</p>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-all cursor-pointer group bg-card text-card-foreground" onClick={() => navigate("/school-setup")}>
-            <CardContent className="py-6 flex items-center gap-4">
+            <CardContent className="py-6 flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center group-hover:bg-orange-200 transition-colors flex-shrink-0">
                 <Settings className="w-6 h-6 text-orange-600" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-card-foreground">Configurer l'établissement</h3>
-                <p className="text-sm text-muted-foreground">Modifier les informations de {school.name} : programmes, effectifs, système actuel, besoins</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-card-foreground break-words">Configurer l'établissement</h3>
+                <p className="text-sm text-muted-foreground break-words">Modifier les informations de {school.name} : programmes, effectifs, système actuel, besoins</p>
               </div>
               <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-orange-600 transition-colors" />
             </CardContent>

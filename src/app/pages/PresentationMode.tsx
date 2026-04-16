@@ -50,15 +50,15 @@ export function PresentationMode() {
   slides.push({
     title: "Contexte de l'établissement",
     render: () => (
-      <div className="flex flex-col items-center justify-center h-full gap-8">
-        <h1 className="text-5xl font-bold text-white">{school.name}</h1>
-        <div className="flex gap-8 text-xl text-white/80">
+      <div className="flex flex-col items-center justify-center h-full gap-6 sm:gap-8 px-2">
+        <h1 className="text-3xl sm:text-5xl font-bold text-white text-center">{school.name}</h1>
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-base sm:text-xl text-white/80 text-center">
           <span>{school.totalStudents || "?"} étudiants</span>
           <span>{school.totalTeachers || "?"} enseignants</span>
           <span>{school.type}</span>
         </div>
         {school.currentPainPoints && (
-          <div className="max-w-2xl bg-white/10 rounded-2xl p-6 backdrop-blur">
+          <div className="w-full max-w-2xl bg-white/10 rounded-2xl p-4 sm:p-6 backdrop-blur">
             <h3 className="text-lg font-semibold text-white mb-3">Points de douleur actuels</h3>
             <ul className="space-y-2">
               {school.currentPainPoints.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).slice(0, 5).map((p, i) => (
@@ -79,23 +79,23 @@ export function PresentationMode() {
     slides.push({
       title: `Persona — ${role}`,
       render: () => (
-        <div className="flex items-center justify-center h-full gap-10">
+        <div className="flex flex-col lg:flex-row items-center justify-center h-full gap-6 lg:gap-10 px-2">
           <div className="flex-shrink-0">
             {p.photo ? (
-              <img src={p.photo} alt={p.name} className="w-40 h-40 rounded-full object-cover border-4 shadow-2xl" style={{ borderColor: ROLE_COLORS[role] }} />
+              <img src={p.photo} alt={p.name} className="w-28 h-28 sm:w-40 sm:h-40 rounded-full object-cover border-4 shadow-2xl" style={{ borderColor: ROLE_COLORS[role] }} />
             ) : (
-              <div className="w-40 h-40 rounded-full flex items-center justify-center text-6xl font-bold text-white shadow-2xl" style={{ background: ROLE_COLORS[role] }}>
+              <div className="w-28 h-28 sm:w-40 sm:h-40 rounded-full flex items-center justify-center text-4xl sm:text-6xl font-bold text-white shadow-2xl" style={{ background: ROLE_COLORS[role] }}>
                 {p.name?.charAt(0) ?? "?"}
               </div>
             )}
           </div>
-          <div className="max-w-xl space-y-4">
+          <div className="w-full max-w-xl space-y-4">
             <div>
-              <h2 className="text-4xl font-bold text-white">{p.name || "—"}</h2>
-              <p className="text-xl text-white/70">{p.age} — {p.type || role}</p>
+              <h2 className="text-2xl sm:text-4xl font-bold text-white text-center lg:text-left">{p.name || "—"}</h2>
+              <p className="text-base sm:text-xl text-white/70 text-center lg:text-left">{p.age} — {p.type || role}</p>
             </div>
-            {p.bio && <p className="text-white/80 text-lg leading-relaxed">{p.bio.substring(0, 250)}{p.bio.length > 250 ? "..." : ""}</p>}
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            {p.bio && <p className="text-white/80 text-sm sm:text-lg leading-relaxed">{p.bio.substring(0, 250)}{p.bio.length > 250 ? "..." : ""}</p>}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
               {p.techSavvy && <div className="bg-white/10 rounded-lg p-3"><span className="text-white/50">Tech:</span> <span className="text-white">{p.techSavvy.split(" - ")[0]}</span></div>}
               {p.timeSpentOnSystem && <div className="bg-white/10 rounded-lg p-3"><span className="text-white/50">Temps système:</span> <span className="text-white">{p.timeSpentOnSystem}</span></div>}
               {p.stressLevel && <div className="bg-white/10 rounded-lg p-3"><span className="text-white/50">Stress:</span> <span className="text-white">{p.stressLevel}</span></div>}
@@ -122,10 +122,10 @@ export function PresentationMode() {
     slides.push({
       title: "Journey Map — Courbe d'émotion",
       render: () => (
-        <div className="flex flex-col items-center justify-center h-full gap-6">
-          <h2 className="text-3xl font-bold text-white">Parcours Utilisateur</h2>
-          <div className="w-full max-w-4xl bg-white/10 rounded-2xl p-6 backdrop-blur">
-            <ResponsiveContainer width="100%" height={300}>
+        <div className="flex flex-col items-center justify-center h-full gap-6 px-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">Parcours Utilisateur</h2>
+          <div className="w-full max-w-4xl bg-white/10 rounded-2xl p-4 sm:p-6 backdrop-blur">
+            <ResponsiveContainer width="100%" height={260}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                 <XAxis dataKey="step" tick={{ fill: "rgba(255,255,255,0.7)", fontSize: 11 }} />
@@ -153,8 +153,8 @@ export function PresentationMode() {
     slides.push({
       title: "Insights Clés",
       render: () => (
-        <div className="flex flex-col items-center justify-center h-full gap-8">
-          <h2 className="text-4xl font-bold text-white">Synthèse des Insights</h2>
+        <div className="flex flex-col items-center justify-center h-full gap-6 sm:gap-8 px-2">
+          <h2 className="text-2xl sm:text-4xl font-bold text-white text-center">Synthèse des Insights</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
             {availableRoles.map(role => {
               const p = personas[role];
@@ -233,8 +233,8 @@ export function PresentationMode() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-950 relative select-none">
       {/* Top controls */}
-      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
-        <div className="text-white/60 text-sm">
+      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 opacity-100 sm:opacity-0 sm:hover:opacity-100 transition-opacity duration-300">
+        <div className="text-white/60 text-xs sm:text-sm max-w-[70%] truncate">
           {current + 1} / {slides.length} — {slide.title}
         </div>
         <div className="flex gap-2">
@@ -257,7 +257,7 @@ export function PresentationMode() {
       </div>
 
       {/* Slide content */}
-      <div className="min-h-screen px-12 py-20">
+      <div className="min-h-screen px-4 sm:px-8 lg:px-12 py-16 sm:py-20">
         {slide.render()}
       </div>
 
@@ -265,17 +265,17 @@ export function PresentationMode() {
       {current > 0 && (
         <button
           onClick={goPrev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition"
         >
-          <ChevronLeft className="w-8 h-8" />
+          <ChevronLeft className="w-7 h-7 sm:w-8 sm:h-8" />
         </button>
       )}
       {current < slides.length - 1 && (
         <button
           onClick={goNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition"
         >
-          <ChevronRight className="w-8 h-8" />
+          <ChevronRight className="w-7 h-7 sm:w-8 sm:h-8" />
         </button>
       )}
 

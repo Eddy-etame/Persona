@@ -6,7 +6,7 @@ import { Badge } from "../components/ui/badge";
 import { ArrowLeft, Download, MapPin, Home, Train, Clock, Smartphone, GraduationCap, Briefcase, Settings, Heart, FileDown } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { toast } from "sonner";
-import { getActiveSchool, personaKey, journeyKey } from "../lib/schoolStore";
+import { getActiveSchool, personaKey, journeyKey, journeyKeyByRole } from "../lib/schoolStore";
 import type { Persona, JourneyStep } from "../lib/types";
 import { exportElementToPdf } from "../lib/pdfExport";
 import { useDocumentMeta } from "../lib/useDocumentMeta";
@@ -28,8 +28,15 @@ export function PosterView() {
   });
 
   const [journeySteps] = useState<JourneyStep[]>(() => {
-    const saved = localStorage.getItem(journeyKey(school.id));
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const role = persona?.role;
+      const raw =
+        (role ? localStorage.getItem(journeyKeyByRole(school.id, role)) : null) ??
+        localStorage.getItem(journeyKey(school.id));
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
   });
 
   const [exporting, setExporting] = useState(false);
@@ -56,8 +63,9 @@ export function PosterView() {
         fileName,
         format: "a4",
         orientation: "portrait",
-        backgroundColor: "#ffffff",
+        backgroundColor: null,
         marginMm: 8,
+        imageType: "png",
       });
       toast.success("PDF exporté avec succès !");
     } catch (err) {
@@ -102,17 +110,18 @@ export function PosterView() {
     ? (journeySteps.reduce((a, s) => a + s.emotion, 0) / journeySteps.length).toFixed(1) : "0";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-950 dark:to-slate-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Controls */}
-        <div className="flex items-center justify-between mb-6 print:hidden">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 print:hidden">
           <Button variant="outline" onClick={() => navigate("/home")}>
             <ArrowLeft className="w-4 h-4 mr-2" />Retour
           </Button>
-          <h1 className="text-2xl font-bold">Poster Final — {school.name}</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handlePrint}>
-              <Download className="w-4 h-4 mr-2" />Imprimer
+          <h1 className="text-xl sm:text-2xl font-bold text-center sm:text-left">Poster Final — {school.name}</h1>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={handlePrint} className="gap-2">
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Imprimer</span>
             </Button>
             <Button onClick={handleExportPDF} disabled={exporting} className="bg-purple-600 hover:bg-purple-700">
               <FileDown className="w-4 h-4 mr-2" />
@@ -394,7 +403,7 @@ export function PosterView() {
                 </div>
 
                 {/* Steps grid */}
-                <div className="grid md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                   {journeySteps.map((step, i) => {
                     const col = step.emotion > 5 ? "bg-green-100 border-green-500"
                       : step.emotion > 0 ? "bg-green-50 border-green-300"

@@ -76,11 +76,11 @@ export function PersonaEditor() {
   const { makeSF } = makeFieldHelper(persona, updateField);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-950 dark:to-slate-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
           <Button variant="outline" onClick={() => navigate("/home")}>
             <ArrowLeft className="w-4 h-4 mr-2" />Retour
           </Button>
@@ -88,10 +88,16 @@ export function PersonaEditor() {
             <h1 className="text-2xl font-bold text-foreground">Mission 1 : Créer un Persona</h1>
             <p className="text-sm text-muted-foreground">Nouveau Système de Gestion {school.name}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <SaveStatus status={autosaveStatus} />
-            <Button variant="outline" onClick={() => navigate("/compare")}><Users className="w-4 h-4 mr-2" />Comparer</Button>
-            <Button onClick={handleSave}><Save className="w-4 h-4 mr-2" />Sauvegarder</Button>
+            <Button variant="outline" onClick={() => navigate("/compare")} className="gap-2">
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">Comparer</span>
+            </Button>
+            <Button onClick={handleSave} className="gap-2">
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">Sauvegarder</span>
+            </Button>
             <ThemeToggle />
           </div>
         </div>
@@ -150,7 +156,7 @@ export function PersonaEditor() {
 
         {/* TABS — 7 onglets */}
         <Tabs defaultValue="identite" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-7 text-xs bg-card text-card-foreground">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 text-xs bg-card text-card-foreground">
             <TabsTrigger value="identite" className="flex items-center gap-1">
               <User className="w-3 h-3" /><span className="hidden sm:inline">Identité</span>
             </TabsTrigger>

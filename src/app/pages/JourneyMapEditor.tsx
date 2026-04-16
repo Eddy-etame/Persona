@@ -233,28 +233,31 @@ export function JourneyMapEditor() {
   const maxStep = steps.length ? steps.reduce((a, s) => s.emotion > a.emotion ? s : a) : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
           <Button variant="outline" onClick={() => navigate("/home")}>
             <ArrowLeft className="w-4 h-4 mr-2" />Retour
           </Button>
           <div className="text-center">
             <h1 className="text-2xl font-bold">Mission 2 : Journey Map</h1>
-            <p className="text-sm text-gray-500">Nouveau Système de Gestion {school.name}</p>
+            <p className="text-sm text-muted-foreground">Nouveau Système de Gestion {school.name}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <SaveStatus status={autosaveStatus} />
             <Button onClick={resetToDefaults} variant="outline" className="gap-2">
-              <RefreshCw className="w-4 h-4" />Templates {currentRole}
+              <RefreshCw className="w-4 h-4" />
+              <span className="hidden sm:inline">Templates {currentRole}</span>
             </Button>
-            <Button onClick={handleSave} variant="outline">
-              <Save className="w-4 h-4 mr-2" />Sauvegarder
+            <Button onClick={handleSave} variant="outline" className="gap-2">
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">Sauvegarder</span>
             </Button>
-            <Button onClick={addStep}>
-              <Plus className="w-4 h-4 mr-2" />Ajouter
+            <Button onClick={addStep} className="gap-2">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Ajouter</span>
             </Button>
           </div>
         </div>
@@ -283,24 +286,24 @@ export function JourneyMapEditor() {
         </div>
 
         {/* Analytics Cards */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card className="border-green-200 bg-green-50">
             <CardContent className="py-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">Moment le plus positif</p>
+              <p className="text-xs text-muted-foreground mb-1">Moment le plus positif</p>
               <p className="font-bold text-green-700 text-sm">{maxStep?.title ?? "—"}</p>
               <p className="text-2xl font-bold text-green-600">{maxStep ? `+${maxStep.emotion}` : "—"}</p>
             </CardContent>
           </Card>
           <Card className="border-blue-200 bg-blue-50">
             <CardContent className="py-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">Score moyen de satisfaction</p>
+              <p className="text-xs text-muted-foreground mb-1">Score moyen de satisfaction</p>
               <p className="text-2xl font-bold text-blue-600">{parseFloat(avgEmotion) > 0 ? "+" : ""}{avgEmotion}</p>
-              <p className="text-xs text-gray-500">sur {steps.length} étapes</p>
+              <p className="text-xs text-muted-foreground">sur {steps.length} étapes</p>
             </CardContent>
           </Card>
           <Card className="border-red-200 bg-red-50">
             <CardContent className="py-3 text-center">
-              <p className="text-xs text-gray-500 mb-1">Point de friction majeur</p>
+              <p className="text-xs text-muted-foreground mb-1">Point de friction majeur</p>
               <p className="font-bold text-red-700 text-sm">{minStep?.title ?? "—"}</p>
               <p className="text-2xl font-bold text-red-600">{minStep?.emotion ?? "—"}</p>
             </CardContent>
@@ -331,7 +334,7 @@ export function JourneyMapEditor() {
           </CardHeader>
           <CardContent>
             {/* Custom curve */}
-            <div className="relative h-64 border-b-2 border-l-2 border-gray-300 mb-4 ml-8">
+            <div className="relative h-64 border-b-2 border-l-2 border-border mb-4 ml-6 sm:ml-8">
               {/* Grid lines */}
               {[-10, -5, 0, 5, 10].map(val => (
                 <div
@@ -339,11 +342,11 @@ export function JourneyMapEditor() {
                   className="absolute left-0 right-0 border-t border-dashed border-gray-200"
                   style={{ bottom: `${((val + 10) / 20) * 100}%` }}
                 >
-                  <span className="absolute -left-8 -translate-y-1/2 text-xs text-gray-400 w-6 text-right">{val}</span>
+                  <span className="absolute -left-6 sm:-left-8 -translate-y-1/2 text-xs text-muted-foreground w-6 text-right">{val}</span>
                 </div>
               ))}
               {/* Zero line highlighted */}
-              <div className="absolute left-0 right-0 border-t-2 border-gray-400" style={{ bottom: "50%" }} />
+              <div className="absolute left-0 right-0 border-t-2 border-muted-foreground/50" style={{ bottom: "50%" }} />
 
               {/* SVG curve */}
               <svg className="absolute inset-0 w-full h-full overflow-visible">
@@ -384,7 +387,7 @@ export function JourneyMapEditor() {
                 return (
                   <div
                     key={step.id}
-                    className="absolute bottom-[-2.5rem] transform -translate-x-1/2 text-xs text-gray-600 text-center w-16 leading-tight"
+                    className="absolute bottom-[-2.5rem] transform -translate-x-1/2 text-[10px] sm:text-xs text-muted-foreground text-center w-16 leading-tight"
                     style={{ left: `${x}%` }}
                   >
                     {step.title.length > 14 ? step.title.substring(0, 11) + "..." : step.title}
@@ -392,7 +395,7 @@ export function JourneyMapEditor() {
                 );
               })}
             </div>
-            <div className="mt-12 flex justify-between text-xs text-gray-400 px-2">
+            <div className="mt-12 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground px-2">
               <span>😢 Très négatif (-10)</span>
               <span>😐 Neutre (0)</span>
               <span>😄 Très positif (+10)</span>
