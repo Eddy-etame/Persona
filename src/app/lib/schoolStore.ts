@@ -160,6 +160,105 @@ export const KEYCE_DEMO: School = {
   competitorSystems: "Hyperplanning (emplois du temps), Aurion (scolarité), Edusign (émargement), Google Classroom (pédagogique)"
 };
 
+// ─── Ynov Demo School (multi-campus) ──────────────────────────────────────────
+// Sources used to shape this demo (public pages): ynov.com "Des parcours pour tous"
+// and program pages listing campus coverage + general figures (14 campus, ~10k students).
+export const YNOV_DEMO: School = {
+  id: "ynov",
+  name: "Ynov Campus (Réseau)",
+  shortName: "Ynov",
+  country: "France",
+  city: "Paris (réseau multi-campus)",
+  type: "École supérieure du digital & des industries créatives",
+  foundingYear: "2013",
+  accreditation: "Titres RNCP (niveaux 6 & 7) selon programmes",
+  website: "https://ynov.com",
+  isDemo: true,
+
+  totalStudents: "~10 000 étudiants",
+  totalTeachers: "Intervenants professionnels + équipe pédagogique (multi-campus)",
+  totalAdminStaff: "Équipes campus + services mutualisés (admissions, scolarité, alternance)",
+  campusCount: "14",
+  campusLocations:
+    "Aix-en-Provence, Bordeaux, Lille, Lyon, Montpellier, Nantes, Paris (Est & Ouest), Rennes, Rouen, Sophia (Nice), Strasbourg, Toulouse, Val d'Europe",
+  departments:
+    "Informatique, Cybersécurité, IA & Data, Marketing & Communication Digitale, Digital & IA, Création & Digital Design, Audiovisuel, 3D/Animation/Jeu vidéo, Architecture d'Intérieur, Bâtiment Numérique",
+  organizationStructure:
+    "Direction nationale → Directions de campus → Responsables de filières → Équipe pédagogique → Intervenants pros",
+
+  programs:
+    "Bachelors & Mastères : Informatique (développement, cloud, réseau), Cybersécurité, Intelligence Artificielle & Data, Marketing & Communication Digitale, Digital & IA, Création & Digital Design (UX/UI, motion), Audiovisuel, 3D/Animation/Jeu vidéo & immersif, Architecture d'Intérieur, Bâtiment Numérique (BIM)",
+  degreeLevels: "Post-bac à Bac+5 (Bachelor 3 ans, Mastère 2 ans) + parcours en alternance",
+  teachingModality: "Présentiel en campus + projets intensifs + périodes entreprise (alternance/stages)",
+  academicCalendar: "Semestriel + périodes projets (challenges 48h, hackathons, projets fil rouge)",
+  gradingSystem: "Contrôle continu + évaluations projets + soutenances + certifications selon filières",
+  teachingLanguages: "Français (majoritaire) + modules en anglais selon programmes",
+  alternancePercent: "Élevé à partir de Bac+3 (selon filière/campus)",
+  internationalPercent: "Variable selon campus (mobilités possibles)",
+  internshipRequired: "Oui (stages et/ou alternance selon parcours)",
+  researchActivity: "Orientation professionnalisante (projets/partenariats entreprise) plutôt que recherche académique",
+
+  currentSoftware:
+    "Stack multi-outils : LMS (type Moodle), outils planning, CRM admissions, messagerie, outils projets (Notion/Trello), signatures/émargement selon campus",
+  currentSoftwareSince: "Écosystème évolutif (outils ajoutés au fil des années)",
+  currentPainPoints:
+    "Systèmes fragmentés par filière/campus, SSO incomplet, données du student lifecycle dispersées, exports manuels (alternance, certifications), reporting multi-campus lent, notifications hétérogènes, expérience mobile inégale",
+  currentStrengths:
+    "Culture digitale forte, adoption élevée des outils, pédagogie projet structurée, forte proximité entreprises",
+  budget: "Investissement piloté au niveau réseau (outils mutualisés + spécificités campus)",
+  implementationTimeline: "Déploiement progressif (pilote 1-2 campus puis généralisation réseau)",
+  decisionMakers: "Direction réseau + Directions de campus + Responsables filières + Référents alternance",
+
+  attendanceMethod: "Émargement digital (QR/présence) + contrôles selon campus et filière",
+  gradeManagement: "Évaluations projets + soutenances, notes centralisées via LMS/outil scolarité",
+  scheduleManagement: "Planning par campus + contraintes salles/intervenants, besoin vue réseau pour mutualisation",
+  studentComm: "Email + outils collaboratifs, besoin d’un canal unifié + notifications mobiles",
+  docManagement: "Supports cours/projets dans LMS + espaces partagés, besoin de gouvernance documentaire",
+  reportingNeeds: "KPI réseau (admissions, scolarité, alternance, certifications RNCP), pilotage par campus et filière",
+  examOrganization: "Soutenances/jurys multi-filières, gestion convocations, traçabilité attestations/parchemins",
+  stageManagement: "Suivi stages/alternance multi-campus, matching entreprises, conventions & signatures",
+
+  adminRoles:
+    "Admissions, Scolarité, Alternance, Relations entreprises, Directions campus, Référents handicap/RGPD",
+  teacherRoles: "Intervenants pros, responsables modules, coordinateurs filière, jurys de soutenance",
+  studentNeeds:
+    "Expérience mobile fluide, planning temps réel, suivi projets, accès notes/attendus, notifications changements, démarches alternance simplifiées",
+  externalStakeholders: "Entreprises partenaires, OPCO, certificateurs RNCP, plateformes e-learning, prestataires",
+  studentPopulation: "18-30 ans, digital-native, très orienté projets/portfolio, forte attente d’outils fluides",
+
+  internetInfra: "Campus connectés (WiFi) + besoins forts en labs (cyber, cloud, audiovisuels)",
+  mobileUsage: "Très élevé côté étudiants; mix laptop + mobile côté intervenants; admin majoritairement desktop",
+  existingIntegrations:
+    "Outils SaaS + besoins API/SSO (Microsoft/Google), intégrations alternance/certifications souhaitées",
+  securityReqs:
+    "Accès role-based, SSO, traçabilité, gestion multi-campus, conformité cybersécurité (filière cyber très exigeante)",
+  gdprNeeds: "RGPD réseau + gestion consentements + droit à l’effacement + gouvernance données multi-outils",
+  accessibilityNeeds: "Accessibilité recommandée (WCAG) + accompagnement handicap (référents campus)",
+  onlineTeaching: "Hybride ponctuel (visio, contenus en ligne) + besoin continuité pédagogique",
+
+  primaryGoals:
+    "Unifier le student lifecycle multi-campus (admissions → scolarité → alternance → diplômation), améliorer l’expérience mobile, accélérer le reporting réseau, standardiser les workflows et intégrations",
+  successMetrics:
+    "Réduction exports manuels, adoption > 90%, délai publication résultats réduit, satisfaction utilisateurs > 4/5, fiabilité planning/notifications",
+  constraints:
+    "Hétérogénéité campus/filières, calendrier alternance, dépendances outils existants, migration progressive sans casser le quotidien",
+  mustHave:
+    "SSO + rôles, API/integrations, mobile-first, planning fiable, notifications, workflows alternance/certifications, multi-campus natif, exports/BI",
+  niceToHave:
+    "Portail entreprise, matching alternance assisté, analytics avancés, automatisations no-code, catalogue compétences/portfolio",
+  dealBreakers:
+    "Pas de multi-campus, pas d’API/SSO, expérience mobile lente, perte de données, reporting impossible",
+  teachingPhilosophy:
+    "Apprentissage par projets, immersion métier, progression par challenges, portfolio & employabilité",
+  values: "Innovation, professionnalisation, agilité, créativité, collaboration",
+  challenges:
+    "Coordination multi-campus, standardisation sans brider les filières, gestion alternance à grande échelle, cohérence expérience digitale",
+  specificRequirements:
+    "Workflows multi-campus + multi-filières, certifications RNCP (traçabilité), gestion jurys/soutenances, accès labs (cyber) et contenus lourds (audiovisuel/3D)",
+  competitorSystems:
+    "Moodle/Canvas (LMS), Hyperplanning (planning), Aurion (scolarité), Teams/Google Workspace, solutions émargement (Edusign), CRM admissions",
+};
+
 // ─── Storage Utilities ────────────────────────────────────────────────────────
 
 const SCHOOLS_KEY = "edu-schools";
@@ -175,16 +274,22 @@ export function getAllSchools(): School[] {
         schools.unshift(KEYCE_DEMO);
         localStorage.setItem(SCHOOLS_KEY, JSON.stringify(schools));
       }
+      // Ensure Ynov demo is always present
+      if (!schools.find(s => s.id === "ynov")) {
+        schools.unshift(YNOV_DEMO);
+        localStorage.setItem(SCHOOLS_KEY, JSON.stringify(schools));
+      }
       return schools;
     }
   } catch {}
-  const defaults = [KEYCE_DEMO];
+  const defaults = [YNOV_DEMO, KEYCE_DEMO];
   localStorage.setItem(SCHOOLS_KEY, JSON.stringify(defaults));
   return defaults;
 }
 
 export function getSchoolById(id: string): School | null {
   if (id === "keyce") return KEYCE_DEMO;
+  if (id === "ynov") return YNOV_DEMO;
   return getAllSchools().find(s => s.id === id) ?? null;
 }
 

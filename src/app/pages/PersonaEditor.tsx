@@ -66,7 +66,7 @@ export function PersonaEditor() {
       saved[persona.role] = persona;
       localStorage.setItem(savedKey, JSON.stringify(saved));
     } catch {}
-    toast.success("Persona sauvegardé !");
+    toast.success("Persona sauvegardé !", { duration: 6000 });
   };
 
   const handleNext = () => { handleSave(); navigate("/journey-map"); };
@@ -81,14 +81,14 @@ export function PersonaEditor() {
 
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
-          <Button variant="outline" onClick={() => navigate("/home")}>
+          <Button variant="outline" onClick={() => navigate("/home")} className="self-start">
             <ArrowLeft className="w-4 h-4 mr-2" />Retour
           </Button>
-          <div className="text-center">
+          <div className="text-center sm:text-left flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-foreground">Mission 1 : Créer un Persona</h1>
             <p className="text-sm text-muted-foreground">Nouveau Système de Gestion {school.name}</p>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 w-full sm:w-auto">
             <SaveStatus status={autosaveStatus} />
             <Button variant="outline" onClick={() => navigate("/compare")} className="gap-2">
               <Users className="w-4 h-4" />
@@ -105,7 +105,7 @@ export function PersonaEditor() {
         {/* Completion Bar */}
         <Card className="mb-4">
           <CardContent className="py-3">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex-1">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-muted-foreground font-medium">Score de complétude du persona</span>
@@ -207,7 +207,11 @@ export function PersonaEditor() {
         </Tabs>
 
         <div className="mt-6 flex justify-end">
-          <Button onClick={handleNext} size="lg" className="text-lg px-8 py-6">
+          <Button
+            onClick={handleNext}
+            size="lg"
+            className="w-full sm:w-auto text-base sm:text-lg px-4 sm:px-8 py-4 sm:py-6"
+          >
             Suivant : Journey Map →
           </Button>
         </div>

@@ -119,7 +119,7 @@ export function SchoolSelection() {
                         const data = JSON.parse(ev.target?.result as string) as SchoolExportData;
                         const result = importSchoolData(data);
                         if (result.success) {
-                          toast.success(`"${result.schoolName}" importé avec succès !`);
+                          toast.success(`"${result.schoolName}" importé avec succès !`, { duration: 6000 });
                           setSchools(getAllSchools());
                         } else {
                           toast.error(result.error || "Erreur d'import");
@@ -244,7 +244,7 @@ export function SchoolSelection() {
                 const result = await prompt.userChoice;
                 if (result.outcome === "accepted") {
                   setCanInstall(false);
-                  toast.success("Application installée !");
+                  toast.success("Application installée !", { duration: 6000 });
                 }
               }
             }}

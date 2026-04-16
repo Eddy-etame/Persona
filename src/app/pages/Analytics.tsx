@@ -72,7 +72,7 @@ export function Analytics() {
 
   if (availableRoles.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50 dark:from-slate-950 dark:to-slate-900 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-cyan-50 dark:from-slate-950 dark:to-slate-900 p-4 sm:p-8">
         <div className="max-w-4xl mx-auto">
           <Button variant="outline" onClick={() => navigate("/home")} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />Retour

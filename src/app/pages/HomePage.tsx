@@ -60,7 +60,7 @@ export function HomePage() {
               a.download = `${school.shortName || school.name}_export.json`;
               a.click();
               URL.revokeObjectURL(url);
-              toast.success("Données exportées !");
+              toast.success("Données exportées !", { duration: 6000 });
             }} className="gap-2">
               <Download className="w-3 h-3" />
               <span className="hidden sm:inline">Exporter</span>

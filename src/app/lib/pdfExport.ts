@@ -11,6 +11,12 @@ interface ExportPdfOptions {
   imageType?: "png" | "jpeg";
   quality?: number;
   scale?: number;
+  /**
+   * If true, forces inline rgb/rgba computed colors inside the cloned DOM
+   * before capture. This avoids html2canvas failing on modern color functions
+   * like `oklch(...)` used by Tailwind/shadcn tokens.
+   */
+  sanitizeColors?: boolean;
 }
 
 type JsPdfCtor = new (options?: {
@@ -45,6 +51,7 @@ export async function exportElementToPdf({
   imageType = "png",
   quality = 0.92,
   scale,
+  sanitizeColors = true,
 }: ExportPdfOptions) {
   const [jspdfModule, html2canvasModule]: [JsPdfModule, Html2CanvasModule] = await Promise.all([
     import("jspdf"),
@@ -56,15 +63,223 @@ export async function exportElementToPdf({
     throw new Error("Impossible de charger html2canvas.");
   }
 
+  // Prefetch current document stylesheets so the onclone callback can run synchronously.
+  const stylesheetClones = await (async () => {
+    try {
+      const links = Array.from(
+        document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][href]'),
+      );
+      const results = await Promise.all(
+        links.map(async (link) => {
+          const href = link.href;
+          try {
+            const res = await fetch(href, { cache: "force-cache" });
+            const text = await res.text();
+            return { href, cssText: text };
+          } catch {
+            return { href, cssText: "" };
+          }
+        }),
+      );
+
+      // html2canvas fails on unsupported color functions such as `oklch()`.
+      // We keep the overall CSS but neutralize these tokens, then override theme vars with rgb values.
+      return results
+        .filter((r) => r.cssText && r.cssText.length > 0)
+        .map((r) => ({
+          href: r.href,
+          cssText: r.cssText.replace(/oklch\\([^)]*\\)/g, "rgb(0 0 0)"),
+        }));
+    } catch {
+      return [] as Array<{ href: string; cssText: string }>;
+    }
+  })();
+
   const safeScale = scale ?? (Math.max(element.scrollHeight, element.clientHeight) > 3500 ? 1.5 : 2);
 
-  const canvas = await html2canvas(element, {
-    scale: safeScale,
-    useCORS: true,
-    backgroundColor,
-    allowTaint: false,
-    logging: false,
-  });
+  const sanitizeClonedSubtreeColors = (doc: Document, root: HTMLElement) => {
+    const props: Array<keyof CSSStyleDeclaration> = [
+      "color",
+      "backgroundColor",
+      "borderTopColor",
+      "borderRightColor",
+      "borderBottomColor",
+      "borderLeftColor",
+      "outlineColor",
+      "textDecorationColor",
+      // svg-related (typed as any to satisfy TS)
+      "fill" as any,
+      "stroke" as any,
+    ];
+
+    const view = doc.defaultView ?? window;
+
+    const walk = (node: Element) => {
+      const style = view.getComputedStyle(node);
+      const el = node as HTMLElement;
+      props.forEach((p) => {
+        const value = (style as any)[p] as string | undefined;
+        if (!value) return;
+        try {
+          (el.style as any)[p] = value;
+        } catch {
+          // ignore unsupported inline assignments
+        }
+      });
+    };
+
+    walk(root);
+    root.querySelectorAll("*").forEach(walk);
+  };
+
+  const THEME_COLOR_VARS = [
+    "--background",
+    "--foreground",
+    "--card",
+    "--card-foreground",
+    "--popover",
+    "--popover-foreground",
+    "--primary",
+    "--primary-foreground",
+    "--secondary",
+    "--secondary-foreground",
+    "--muted",
+    "--muted-foreground",
+    "--accent",
+    "--accent-foreground",
+    "--destructive",
+    "--destructive-foreground",
+    "--border",
+    "--input",
+    "--input-background",
+    "--switch-background",
+    "--ring",
+    "--chart-1",
+    "--chart-2",
+    "--chart-3",
+    "--chart-4",
+    "--chart-5",
+    "--sidebar",
+    "--sidebar-foreground",
+    "--sidebar-primary",
+    "--sidebar-primary-foreground",
+    "--sidebar-accent",
+    "--sidebar-accent-foreground",
+    "--sidebar-border",
+    "--sidebar-ring",
+  ] as const;
+
+  const resolveColorVar = (doc: Document, varName: string): string | null => {
+    const view = doc.defaultView ?? window;
+    const el = doc.createElement("span");
+    el.style.position = "fixed";
+    el.style.left = "-9999px";
+    el.style.top = "-9999px";
+    el.style.color = `var(${varName})`;
+    el.style.backgroundColor = `var(${varName})`;
+    doc.body.appendChild(el);
+    try {
+      const cs = view.getComputedStyle(el);
+      const bg = cs.backgroundColor;
+      const fg = cs.color;
+      const val = bg && bg !== "rgba(0, 0, 0, 0)" ? bg : fg;
+      if (!val) return null;
+      // Prefer rgb/rgba output; if not, fallback to null.
+      if (val.includes("rgb")) return val;
+      return null;
+    } finally {
+      el.remove();
+    }
+  };
+
+  const buildThemeVarOverrideCss = (doc: Document) => {
+    const root = doc.documentElement;
+    const originalDark = root.classList.contains("dark");
+
+    const computeMap = (isDark: boolean) => {
+      if (isDark) root.classList.add("dark");
+      else root.classList.remove("dark");
+
+      const map = new Map<string, string>();
+      THEME_COLOR_VARS.forEach((v) => {
+        const resolved = resolveColorVar(doc, v);
+        if (resolved) map.set(v, resolved);
+      });
+      return map;
+    };
+
+    const light = computeMap(false);
+    const dark = computeMap(true);
+
+    if (originalDark) root.classList.add("dark");
+    else root.classList.remove("dark");
+
+    const toDecls = (m: Map<string, string>) =>
+      Array.from(m.entries())
+        .map(([k, v]) => `${k}:${v};`)
+        .join("");
+
+    return `:root{${toDecls(light)}}.dark{${toDecls(dark)}}`;
+  };
+
+  const restoreId = (() => {
+    if (!sanitizeColors) return () => {};
+    const existingId = element.id;
+    if (existingId) return () => {};
+    const tempId = `pdf-export-${Math.random().toString(36).slice(2, 9)}`;
+    element.id = tempId;
+    return () => {
+      // restore for cleanliness
+      element.id = "";
+    };
+  })();
+
+  const canvas = await (async () => {
+    try {
+      return await html2canvas(element, {
+        scale: safeScale,
+        useCORS: true,
+        backgroundColor,
+        allowTaint: false,
+        logging: false,
+        onclone: (doc) => {
+          if (!sanitizeColors) return;
+          try {
+            doc.documentElement.style.colorScheme = "light";
+            const root = doc.getElementById(element.id) as HTMLElement | null;
+
+            // Replace stylesheet links with sanitized style tags to avoid `oklch()` parsing crashes.
+            // We keep overall CSS rules, but neutralize unsupported tokens, and then override vars with rgb values.
+            const head = doc.head ?? doc.getElementsByTagName("head")[0];
+            if (head && stylesheetClones.length > 0) {
+              Array.from(doc.querySelectorAll('link[rel="stylesheet"]')).forEach((n) => n.remove());
+              stylesheetClones.forEach((s) => {
+                const styleEl = doc.createElement("style");
+                styleEl.setAttribute("data-export-css", "true");
+                styleEl.textContent = s.cssText;
+                head.appendChild(styleEl);
+              });
+            }
+
+            // Override theme variables with resolved rgb/rgba values so the sanitized CSS still renders correctly.
+            const overrideCss = buildThemeVarOverrideCss(doc);
+            if (head && overrideCss) {
+              const overrideEl = doc.createElement("style");
+              overrideEl.setAttribute("data-export-theme-vars", "true");
+              overrideEl.textContent = overrideCss;
+              head.appendChild(overrideEl);
+            }
+
+            if (root) sanitizeClonedSubtreeColors(doc, root);
+          } catch {
+            // best-effort
+          }
+        },
+      });
+    } finally {
+      restoreId();
+    }
+  })();
   
   if (!canvas || canvas.width === 0 || canvas.height === 0) {
     throw new Error("La capture du contenu a échoué (canvas vide). Vérifiez que l'élément est bien visible.");

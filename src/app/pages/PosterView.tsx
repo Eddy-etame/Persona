@@ -41,6 +41,48 @@ export function PosterView() {
 
   const [exporting, setExporting] = useState(false);
 
+  const posterAccentStorageKey = `edu-poster-accent-${school.id}-${persona?.role ?? "role"}`;
+  const roleDefaultAccent =
+    persona?.role === "Étudiant" ? "#2563eb" : persona?.role === "Enseignant" ? "#10b981" : "#7c3aed";
+
+  const [posterAccent, setPosterAccent] = useState<string>(() => {
+    try {
+      const raw = localStorage.getItem(posterAccentStorageKey);
+      return raw && /^#[0-9a-fA-F]{6}$/.test(raw) ? raw : roleDefaultAccent;
+    } catch {
+      return roleDefaultAccent;
+    }
+  });
+
+  const posterPresets: Array<{ name: string; value: string }> = [
+    { name: "Blue", value: "#2563eb" },
+    { name: "Emerald", value: "#10b981" },
+    { name: "Violet", value: "#7c3aed" },
+    { name: "Rose", value: "#e11d48" },
+    { name: "Amber", value: "#f59e0b" },
+    { name: "Slate", value: "#334155" },
+  ];
+
+  const clamp255 = (n: number) => Math.max(0, Math.min(255, n));
+  const darkenHex = (hex: string, amount = 0.28) => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+    if (!m) return hex;
+    const raw = m[1];
+    const r = parseInt(raw.slice(0, 2), 16);
+    const g = parseInt(raw.slice(2, 4), 16);
+    const b = parseInt(raw.slice(4, 6), 16);
+    const dr = clamp255(Math.round(r * (1 - amount)));
+    const dg = clamp255(Math.round(g * (1 - amount)));
+    const db = clamp255(Math.round(b * (1 - amount)));
+    return `#${dr.toString(16).padStart(2, "0")}${dg.toString(16).padStart(2, "0")}${db
+      .toString(16)
+      .padStart(2, "0")}`;
+  };
+
+  const posterHeaderStyle = {
+    backgroundImage: `linear-gradient(to right, ${posterAccent}, ${darkenHex(posterAccent)})`,
+  } as const;
+
   const chartData = journeySteps.map((step, i) => ({
     name: `${i + 1}`,
     emotion: step.emotion,
@@ -67,7 +109,7 @@ export function PosterView() {
         marginMm: 8,
         imageType: "png",
       });
-      toast.success("PDF exporté avec succès !");
+      toast.success("PDF exporté avec succès !", { duration: 6000 });
     } catch (err) {
       console.error(err);
       toast.error("Export PDF impossible. Utilisez l'impression navigateur.");
@@ -80,14 +122,14 @@ export function PosterView() {
 
   if (!persona || journeySteps.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-950 dark:to-slate-900 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-950 dark:to-slate-900 p-4 sm:p-8">
         <div className="max-w-6xl mx-auto text-center">
           <Button variant="outline" onClick={() => navigate("/home")} className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />Retour
           </Button>
           <h1 className="text-3xl font-bold mb-4">Poster non disponible</h1>
           <p className="text-gray-600 mb-8">Veuillez d'abord compléter le Persona et la Journey Map pour <strong>{school.name}</strong>.</p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button onClick={() => navigate("/persona")}>Créer le Persona</Button>
             <Button variant="outline" onClick={() => navigate("/journey-map")}>Créer la Journey Map</Button>
           </div>
@@ -102,10 +144,6 @@ export function PosterView() {
     return <Settings className="w-6 h-6" />;
   };
 
-  const roleGradient = persona.role === "Étudiant" ? "from-blue-600 to-blue-800"
-    : persona.role === "Enseignant" ? "from-green-600 to-teal-800"
-    : "from-purple-600 to-indigo-800";
-
   const avgEmotion = journeySteps.length
     ? (journeySteps.reduce((a, s) => a + s.emotion, 0) / journeySteps.length).toFixed(1) : "0";
 
@@ -119,6 +157,39 @@ export function PosterView() {
           </Button>
           <h1 className="text-xl sm:text-2xl font-bold text-center sm:text-left">Poster Final — {school.name}</h1>
           <div className="flex flex-wrap justify-end gap-2">
+            <div className="flex items-center gap-2 rounded-md border bg-card px-2 py-1">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Couleur</span>
+              <select
+                className="h-8 max-w-[7.5rem] text-xs bg-transparent outline-none"
+                value={posterAccent}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setPosterAccent(next);
+                  try {
+                    localStorage.setItem(posterAccentStorageKey, next);
+                  } catch {}
+                }}
+              >
+                {posterPresets.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                aria-label="Couleur du poster"
+                type="color"
+                className="h-8 w-10 bg-transparent p-0 border-0"
+                value={posterAccent}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setPosterAccent(next);
+                  try {
+                    localStorage.setItem(posterAccentStorageKey, next);
+                  } catch {}
+                }}
+              />
+            </div>
             <Button variant="outline" onClick={handlePrint} className="gap-2">
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Imprimer</span>
@@ -135,7 +206,7 @@ export function PosterView() {
         <div ref={posterRef} className="bg-white rounded-xl shadow-2xl print:shadow-none overflow-hidden">
 
           {/* ── HEADER ── */}
-          <div className={`bg-gradient-to-r ${roleGradient} text-white p-8 text-center`}>
+          <div className="text-white p-4 sm:p-8 text-center" style={posterHeaderStyle}>
             <h1 className="text-3xl font-bold mb-1">Nouveau Système de Gestion</h1>
             <h2 className="text-4xl font-bold mb-2">{school.name}</h2>
             <p className="text-lg opacity-80">Projet UX/UI — Persona & Journey Map — Remplacement {school.currentSoftware || "système actuel"}</p>
@@ -153,7 +224,7 @@ export function PosterView() {
 
             {/* ── PERSONA SECTION ── */}
             <section>
-              <div className={`bg-gradient-to-r ${roleGradient} text-white p-3 rounded-t-lg flex items-center gap-3`}>
+              <div className="text-white p-3 rounded-t-lg flex items-center gap-3" style={posterHeaderStyle}>
                 {getRoleIcon()}
                 <h2 className="text-xl font-bold">Persona — {persona.type || persona.name}</h2>
               </div>

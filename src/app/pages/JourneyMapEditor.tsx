@@ -197,7 +197,7 @@ export function JourneyMapEditor() {
 
   const handleSave = () => {
     forceSave();
-    toast.success("Journey Map sauvegardée !");
+    toast.success("Journey Map sauvegardée !", { duration: 6000 });
   };
 
   const handleNext = () => { handleSave(); navigate("/poster"); };
@@ -221,7 +221,7 @@ export function JourneyMapEditor() {
   const resetToDefaults = () => {
     const defaults = getDefaultSteps(currentRole);
     setSteps(defaults);
-    toast.success(`Journey Map réinitialisée pour le rôle : ${currentRole}`);
+    toast.success(`Journey Map réinitialisée pour le rôle : ${currentRole}`, { duration: 6000 });
   };
 
   const roleColor = currentRole === "Étudiant" ? "from-blue-600 to-blue-800"

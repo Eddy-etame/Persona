@@ -143,7 +143,7 @@ export function SchoolOnboarding() {
     saveSchool(finalSchool);
     setActiveSchoolId(finalSchool.id);
     sessionStorage.removeItem(DRAFT_KEY);
-    toast.success(`${finalSchool.name} ${isEditing ? "mis à jour" : "configuré"} avec succès !`);
+    toast.success(`${finalSchool.name} ${isEditing ? "mis à jour" : "configuré"} avec succès !`, { duration: 6000 });
     navigate("/home");
   };
 
